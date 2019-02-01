@@ -67,6 +67,7 @@ public:
     std::string m_sessionId = "";
 
     std::chrono::system_clock::time_point m_heartbeatStartTime;
+    std::chrono::milliseconds m_heartbeatInverval;
 
     // Callbacks queue
     std::mutex m_callbacksMutex;
@@ -92,6 +93,7 @@ S2SContext_internal::S2SContext_internal(const std::string& appId,
     , m_serverName(serverName)
     , m_serverSecret(serverSecret)
     , m_url(url)
+    , m_heartbeatInverval(HEARTBEAT_INTERVALE_MS)
 {
 }
 
@@ -148,7 +150,14 @@ void S2SContext_internal::authenticate(const AuthenticateCallback& callback)
 
             pThis->m_authenticated = true;
             pThis->m_packetId = data["packetId"].asInt() + 1;
-            pThis->m_sessionId = message["data"]["sessionId"].asString();
+            const auto& messageData = message["data"];
+            pThis->m_sessionId = messageData["sessionId"].asString();
+            const auto& heartbeatSeconds = messageData["heartbeatSeconds"];
+            if (heartbeatSeconds.isInt())
+            {
+                pThis->m_heartbeatInverval = 
+                    std::chrono::milliseconds(heartbeatSeconds.asInt() * 1000);
+            }
 
             pThis->startHeartbeat();
             callback(message);
@@ -468,7 +477,7 @@ void S2SContext_internal::runCallbacks(uint64_t timeoutMS)
     {
         auto now = std::chrono::system_clock::now();
         auto timeDiff = now - m_heartbeatStartTime;
-        if (timeDiff >= std::chrono::milliseconds(HEARTBEAT_INTERVALE_MS))
+        if (timeDiff >= std::chrono::milliseconds(m_heartbeatInverval))
         {
             sendHeartbeat();
             m_heartbeatStartTime = now;
@@ -476,15 +485,18 @@ void S2SContext_internal::runCallbacks(uint64_t timeoutMS)
         }
 
         // Just wait for the specified timeout
-        auto waitTime = std::min(
-            std::chrono::milliseconds(timeoutMS),
-            std::chrono::milliseconds(HEARTBEAT_INTERVALE_MS) - 
-            std::chrono::duration_cast<std::chrono::milliseconds>(timeDiff)
-        );
-        std::unique_lock<std::mutex> lock(m_callbacksMutex);
-        m_callbacksCond.wait_for(lock, waitTime);
+        if (timeoutMS > 0)
+        {
+            auto waitTime = std::min(
+                std::chrono::milliseconds(timeoutMS),
+                std::chrono::milliseconds(m_heartbeatInverval) - 
+                std::chrono::duration_cast<std::chrono::milliseconds>(timeDiff)
+            );
+            std::unique_lock<std::mutex> lock(m_callbacksMutex);
+            m_callbacksCond.wait_for(lock, waitTime);
+        }
     }
-    else
+    else if (timeoutMS > 0)
     {
         // Just wait for the specified timeout
         std::unique_lock<std::mutex> lock(m_callbacksMutex);
