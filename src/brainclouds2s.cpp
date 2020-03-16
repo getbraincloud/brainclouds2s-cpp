@@ -213,7 +213,7 @@ void S2SContext_internal::sendRequest(
         }
 
         const auto& messageResponses = data["messageResponses"];
-        if (data["statis"].asInt() != 200 && 
+        if (data["status"].asInt() != 200 && 
             data["reason_code"].asInt() == SERVER_SESSION_EXPIRED)
         {
             pThis->disconnect();
