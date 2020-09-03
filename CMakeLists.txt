@@ -25,7 +25,7 @@ list(APPEND libs PUBLIC ${CURL_LIBRARIES})
 # JsonCpp
 find_package(JsonCpp REQUIRED)
 list(APPEND includes PUBLIC ${JSONCPP_INCLUDE_DIRS})
-list(APPEND libs PUBLIC ${JSONCPP_LIBRARY_SHARED})
+list(APPEND libs PUBLIC ${JSONCPP_LIBRARY})
 
 # pthreads
 find_package(Threads)

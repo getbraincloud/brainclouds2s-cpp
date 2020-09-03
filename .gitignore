@@ -52,3 +52,6 @@ Mkfile.old
 dkms.conf
 
 ids.h
+build/
+.DS_Store
+.vscode/
