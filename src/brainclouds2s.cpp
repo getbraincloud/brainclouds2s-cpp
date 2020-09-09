@@ -189,6 +189,7 @@ void S2SContext_internal::sendRequest(
         bool parsingSuccessful = reader.parse(json.c_str(), data);
         if (!parsingSuccessful)
         {
+            s2s_log("[S2S Error] Failed to parse user json");
             callback("{\"status_code\":900,\"message\":\"Failed to parse user json\"}");
             return;
         }
@@ -413,7 +414,7 @@ void S2SContext_internal::request(
         auto pThis = shared_from_this();
         authenticate([pThis, json, callback](const Json::Value& data)
         {
-            if (!data.isNull())
+            if (!data.isNull() && data["status"].asInt() == 200)
             {
                 pThis->sendRequest(json, callback);
             }
