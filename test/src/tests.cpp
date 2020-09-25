@@ -154,9 +154,9 @@ TEST_CASE("Context with bad Server Secret", "[S2S]")
         "null",
         BRAINCLOUD_SERVER_URL
     );
-    pContext->setLogEnabled(true);
-
     REQUIRE(pContext);
+
+    pContext->setLogEnabled(true);
 
     auto request = "{ \
         \"service\": \"time\", \
@@ -166,4 +166,75 @@ TEST_CASE("Context with bad Server Secret", "[S2S]")
 
     auto ret = run(request, pContext); // Should fail on auth
     REQUIRE_FALSE(ret);
+}
+
+TEST_CASE("RunCallbacks with timeout", "[S2S]")
+{
+    auto pContext = S2SContext::create(
+        BRAINCLOUD_APP_ID,
+        BRAINCLOUD_SERVER_NAME,
+        BRAINCLOUD_SERVER_SECRET,
+        BRAINCLOUD_SERVER_URL
+    );
+
+    pContext->setLogEnabled(true);
+
+    auto request = "{ \
+        \"service\": \"time\", \
+        \"operation\": \"READ\", \
+        \"data\": {} \
+    }";
+
+    Json::Value data;
+    bool processed = false;
+    std::string ret;
+
+    pContext->request(request, [&](const std::string& result)
+    {
+        ret = result;
+        processed = true;
+    });
+
+    pContext->runCallbacks(20 * 1000); // Auth
+    pContext->runCallbacks(20 * 1000); // The request
+
+    REQUIRE(processed);
+
+    Json::Reader reader;
+    bool parsingSuccessful = reader.parse(ret.c_str(), data);
+    REQUIRE(parsingSuccessful);
+
+    auto status_code = data["status"].asInt();
+    REQUIRE(status_code == 200);
+}
+
+TEST_CASE("requestSync", "[S2S]")
+{
+    auto pContext = S2SContext::create(
+        BRAINCLOUD_APP_ID,
+        BRAINCLOUD_SERVER_NAME,
+        BRAINCLOUD_SERVER_SECRET,
+        BRAINCLOUD_SERVER_URL
+    );
+
+    pContext->setLogEnabled(true);
+
+    auto request = "{ \
+        \"service\": \"time\", \
+        \"operation\": \"READ\", \
+        \"data\": {} \
+    }";
+
+    Json::Value data;
+    bool processed = false;
+
+    std::string result = pContext->requestSync(request);
+
+    Json::Reader reader;
+    bool parsingSuccessful = reader.parse(result.c_str(), data);
+    REQUIRE(parsingSuccessful);
+
+    auto status = data["status"].asInt();
+    INFO(data["message"].asString());
+    CHECK(status == 200);
 }

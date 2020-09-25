@@ -35,6 +35,7 @@ public:
     void request(
         const std::string& json,
         const S2SCallback& callback) override;
+    std::string requestSync(const std::string& json) override;
     void runCallbacks(uint64_t timeoutMS = 0) override;
 
     // private:
@@ -55,6 +56,7 @@ public:
     void stopHeartbeat();
     void disconnect();
     void sendHeartbeat();
+    void processCallbacks();
 
     std::string m_appId;
     std::string m_serverName;
@@ -190,7 +192,7 @@ void S2SContext_internal::sendRequest(
         if (!parsingSuccessful)
         {
             s2s_log("[S2S Error] Failed to parse user json");
-            callback("{\"status_code\":900,\"message\":\"Failed to parse user json\"}");
+            callback("{\"status\":900,\"message\":\"Failed to parse user json\"}");
             return;
         }
         messages.append(data);
@@ -209,7 +211,7 @@ void S2SContext_internal::sendRequest(
         if (!parsingSuccessful)
         {
             pThis->disconnect();
-            callback("{\"status_code\":900,\"message\":\"Failed to parse json\"}");
+            callback("{\"status\":900,\"message\":\"Failed to parse json\"}");
             return;
         }
 
@@ -322,7 +324,7 @@ void S2SContext_internal::curlSend(const std::string& postData,
             {
                 pThis->queueCallback({
                     errorCallback,
-                    "{\"status_code\":900,\"message\":\"cURL Out of Memory\"}"
+                    "{\"status\":900,\"message\":\"cURL Out of Memory\"}"
                 });
             }
             return;
@@ -365,7 +367,7 @@ void S2SContext_internal::curlSend(const std::string& postData,
             {
                 pThis->queueCallback({
                     errorCallback,
-                    "{\"status_code\":900,\"message\":\"Operation timed out\"}"
+                    "{\"status\":900,\"message\":\"Operation timed out\"}"
                 });
             }
             return;
@@ -376,7 +378,7 @@ void S2SContext_internal::curlSend(const std::string& postData,
             {
                 pThis->queueCallback({
                     errorCallback,
-                    std::string("{\"status_code\":900,\"message\":\"") + 
+                    std::string("{\"status\":900,\"message\":\"") + 
                     curlError + "\"}"
                 });
             }
@@ -426,6 +428,35 @@ void S2SContext_internal::request(
     }
 }
 
+std::string S2SContext_internal::requestSync(const std::string& json)
+{
+    std::string ret;
+    bool processed = false;
+
+    request(json, [&](const std::string& result)
+    {
+        ret = result;
+        processed = true;
+    });
+
+    // Timeout after 60sec. This call shouldn't be that long
+    auto startTime = std::chrono::steady_clock::now();
+    while (!processed && 
+           std::chrono::steady_clock::now() < 
+           startTime + std::chrono::seconds(60))
+    {
+        runCallbacks();
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+    if (!processed)
+    {
+        ret = "{\"status\":900,\"message\":\"Request timeout\"}";
+    }
+
+    return std::move(ret);
+}
+
 void S2SContext_internal::startHeartbeat()
 {
     stopHeartbeat();
@@ -471,6 +502,24 @@ void S2SContext_internal::sendHeartbeat()
     });
 }
 
+void S2SContext_internal::processCallbacks()
+{
+    m_callbacksMutex.lock();
+    while (!m_callbacks.empty())
+    {
+        auto callback = m_callbacks.front();
+        m_callbacks.pop();
+        
+        if (callback.callback)
+        {
+            m_callbacksMutex.unlock();
+            callback.callback(callback.data);
+            m_callbacksMutex.lock();
+        }
+    }
+    m_callbacksMutex.unlock();
+}
+
 void S2SContext_internal::runCallbacks(uint64_t timeoutMS)
 {
     // Send heartbeat if we have to
@@ -504,18 +553,5 @@ void S2SContext_internal::runCallbacks(uint64_t timeoutMS)
         m_callbacksCond.wait_for(lock, std::chrono::milliseconds(timeoutMS));
     }
 
-    m_callbacksMutex.lock();
-    while (!m_callbacks.empty())
-    {
-        auto callback = m_callbacks.front();
-        m_callbacks.pop();
-        
-        if (callback.callback)
-        {
-            m_callbacksMutex.unlock();
-            callback.callback(callback.data);
-            m_callbacksMutex.lock();
-        }
-    }
-    m_callbacksMutex.unlock();
+    processCallbacks();
 }
