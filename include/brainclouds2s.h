@@ -52,6 +52,13 @@ public:
         const S2SCallback& callback) = 0;
 
     /*
+     * Send an S2S request, and wait for result. This call is blocking.
+     * @param json Content to be sent
+     * @return callback Callback function
+     */
+    virtual std::string requestSync(const std::string& json) = 0;
+
+    /*
      * Update requests and perform callbacks on the calling thread.
      * @param timeoutMS Time to block on the call in milliseconds. 
      *                  Pass 0 to return immediately.
