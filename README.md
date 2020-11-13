@@ -1,2 +1,2 @@
-# brainclouds2s-c
-brainCloud S2S C api for Linux
+# brainclouds2s-cpp
+brainCloud S2S C++ api
