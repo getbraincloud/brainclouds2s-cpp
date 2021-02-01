@@ -158,14 +158,56 @@ TEST_CASE("Context with bad Server Secret", "[S2S]")
 
     pContext->setLogEnabled(true);
 
-    auto request = "{ \
-        \"service\": \"time\", \
-        \"operation\": \"READ\", \
-        \"data\": {} \
-    }";
+    // SECTION("Valid request")
+    // {
+    //     auto request = "{ \
+    //         \"service\": \"time\", \
+    //         \"operation\": \"READ\", \
+    //         \"data\": {} \
+    //     }";
 
-    auto ret = run(request, pContext); // Should fail on auth
-    REQUIRE_FALSE(ret);
+    //     auto ret = run(request, pContext); // Should fail on auth
+    //     REQUIRE_FALSE(ret);
+    // }
+
+    SECTION("Successive calls")
+    {
+        auto request = "{ \
+            \"service\": \"time\", \
+            \"operation\": \"READ\", \
+            \"data\": {} \
+        }";
+
+        int processed_count = 0;
+        int success_count = 0;
+
+        auto callback = [&](const std::string& result)
+        {
+            Json::Value data;
+            Json::Reader reader;
+            bool parsingSuccessful = reader.parse(result.c_str(), data);
+            if (parsingSuccessful && data["status"].asInt() == 200)
+            {
+                success_count++;
+            }
+            processed_count++;
+        };
+
+        // Queue many at once
+        pContext->request(request, callback);
+        pContext->request(request, callback);
+        pContext->request(request, callback);
+        pContext->request(request, callback);
+        pContext->request(request, callback);
+        
+        while (processed_count < 1)
+        {
+            pContext->runCallbacks(100);
+        }
+
+        REQUIRE(success_count == 0);
+        REQUIRE(processed_count == 1); // Only the first one will return, the rest are cleared on failed auth
+    }
 }
 
 TEST_CASE("RunCallbacks with timeout", "[S2S]")
@@ -237,4 +279,70 @@ TEST_CASE("requestSync", "[S2S]")
     auto status = data["status"].asInt();
     INFO(data["message"].asString());
     CHECK(status == 200);
+}
+
+TEST_CASE("Bad Requests", "[S2S]")
+{
+    auto pContext = S2SContext::create(
+        BRAINCLOUD_APP_ID,
+        BRAINCLOUD_SERVER_NAME,
+        BRAINCLOUD_SERVER_SECRET,
+        BRAINCLOUD_SERVER_URL
+    );
+    pContext->setLogEnabled(true);
+
+    SECTION("Single Bad Request")
+    {
+        auto bad_request = "{ \
+            \"service\": \"timey\", \
+            \"operation\": \"READ_MUH_TIME\", \
+            \"data\": {} \
+        }";
+
+        auto ret = run(bad_request, pContext);
+        REQUIRE_FALSE(ret);
+    }
+
+    SECTION("Queued requests but of of them is bad")
+    {
+        auto bad_request = "{ \
+            \"service\": \"timey\", \
+            \"operation\": \"READ_MUH_TIME\", \
+            \"data\": {} \
+        }";
+        auto good_request = "{ \
+            \"service\": \"time\", \
+            \"operation\": \"READ\", \
+            \"data\": {} \
+        }";
+
+        int processed_count = 0;
+        int success_count = 0;
+
+        auto callback = [&](const std::string& result)
+        {
+            Json::Value data;
+            Json::Reader reader;
+            bool parsingSuccessful = reader.parse(result.c_str(), data);
+            if (parsingSuccessful && data["status"].asInt() == 200)
+            {
+                success_count++;
+            }
+            processed_count++;
+        };
+
+        // Queue many at once
+        pContext->request(good_request, callback);
+        pContext->request(good_request, callback);
+        pContext->request(bad_request, callback);
+        pContext->request(good_request, callback);
+        pContext->request(good_request, callback);
+        
+        while (processed_count < 5)
+        {
+            pContext->runCallbacks(100);
+        }
+
+        REQUIRE(success_count == 4);
+    }
 }

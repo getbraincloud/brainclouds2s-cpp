@@ -231,7 +231,6 @@ void S2SContext_internal::queueRequest(
             Json::Value json(Json::ValueType::objectValue);
             json["status"] = 900;
             json["message"] = "Failed to parse json";
-            pThis->disconnect();
 
             Json::StreamWriterBuilder builder;
             builder["indentation"] = ""; // If you want whitespace-less output
@@ -258,7 +257,6 @@ void S2SContext_internal::queueRequest(
             Json::Value json(Json::ValueType::objectValue);
             json["status"] = 900;
             json["message"] = "Malformed json";
-            pThis->disconnect();
 
             Json::StreamWriterBuilder builder;
             builder["indentation"] = ""; // If you want whitespace-less output
