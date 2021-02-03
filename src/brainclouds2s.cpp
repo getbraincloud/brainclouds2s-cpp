@@ -29,10 +29,13 @@ public:
     S2SContext_internal(const std::string& appId,
                         const std::string& serverName,
                         const std::string& serverSecret,
-                        const std::string& url);
+                        const std::string& url,
+                        bool autoAuth);
     ~S2SContext_internal();
 
     void setLogEnabled(bool enabled) override;
+    void authenticate(const S2SCallback& callback);
+    std::string authenticateSync();
     void request(
         const std::string& json,
         const S2SCallback& callback) override;
@@ -52,7 +55,8 @@ public: // "private" it's internal to this file only, so keep stuff visible
         S2SCallback callback;
     };
 
-    void authenticate(const AuthenticateCallback& callback);
+    void authenticateInternal(const AuthenticateCallback& callback);
+    void onAuthenticateResult(const Json::Value& json, const S2SCallback& callback);
     void queueRequest(const std::string& json, const S2SCallback& callback);
     void queueRequestPacket(const Json::Value& json, const S2SCallback& callback);
     void s2sRequest(const Json::Value& json, const S2SCallback& callback);
@@ -72,6 +76,7 @@ public: // "private" it's internal to this file only, so keep stuff visible
     std::string m_serverName;
     std::string m_serverSecret;
     std::string m_url;
+    bool m_autoAuth = false;
 
     enum State
     {
@@ -100,23 +105,26 @@ public: // "private" it's internal to this file only, so keep stuff visible
 S2SContextRef S2SContext::create(const std::string& appId,
                                  const std::string& serverName,
                                  const std::string& serverSecret,
-                                 const std::string& url)
+                                 const std::string& url,
+                                 bool autoAuth)
 {
     return S2SContextRef(
-        new S2SContext_internal(appId, serverName, serverSecret, url)
+        new S2SContext_internal(appId, serverName, serverSecret, url, autoAuth)
     );
 }
 
 S2SContext_internal::S2SContext_internal(const std::string& appId,
                                          const std::string& serverName,
                                          const std::string& serverSecret,
-                                         const std::string& url)
+                                         const std::string& url,
+                                         bool autoAuth)
     : m_appId(appId)
     , m_serverName(serverName)
     , m_serverSecret(serverSecret)
     , m_url(url)
     , m_state(State::Disonnected)
     , m_heartbeatInverval(HEARTBEAT_INTERVALE_MS)
+    , m_autoAuth(autoAuth)
 {
 }
 
@@ -130,7 +138,7 @@ void S2SContext_internal::setLogEnabled(bool enabled)
     m_logEnabled = enabled;
 }
 
-void S2SContext_internal::authenticate(const AuthenticateCallback& callback)
+void S2SContext_internal::authenticateInternal(const AuthenticateCallback& callback)
 {
     // Build the authentication json
     Json::Value json(Json::ValueType::objectValue);
@@ -159,11 +167,10 @@ void S2SContext_internal::authenticate(const AuthenticateCallback& callback)
             Json::Value json(Json::ValueType::objectValue);
             json["status"] = 900;
             json["message"] = "Failed to parse json";
-            pThis->disconnect();
             callback(json);
             return;
         }
-
+            
         const auto& messageResponses = data["messageResponses"];
         if (!messageResponses.isNull() && 
             messageResponses.size() > 0 &&
@@ -191,7 +198,6 @@ void S2SContext_internal::authenticate(const AuthenticateCallback& callback)
             Json::Value json(Json::ValueType::objectValue);
             json["status"] = 900;
             json["message"] = "Malformed json";
-            pThis->disconnect();
             callback(json);
         }
     });
@@ -479,22 +485,102 @@ void S2SContext_internal::curlSend(const std::string& postData,
     });
     sendThread.detach();
 }
-                
+
+void S2SContext_internal::onAuthenticateResult(const Json::Value& json, 
+                                               const S2SCallback& callback)
+{
+    Json::StreamWriterBuilder builder;
+    builder["indentation"] = ""; // If you want whitespace-less output
+    std::string callback_message = Json::writeString(builder, json);
+    
+    if (json["status"].asInt() != 200)
+    {
+        // Create a copy of our previous requests, we will callback
+        // then all on failed auth. The reasons are:
+        // 1. disconnect() clears the queue
+        // 2. A callback might create new requets and cause side 
+        //    effects so it's better to be in a clean state.
+        decltype(m_requestQueue) requestQueueCopy;
+        {
+            std::unique_lock<std::mutex> lock(m_requestsMutex);
+            requestQueueCopy = m_requestQueue;
+        }
+
+        // Disconnect (Clear internal queued requests)
+        disconnect();
+
+        // Callback to everyone that were queued
+        callback(callback_message);
+        for (size_t i = m_autoAuth ? 1 : 0 /* On Auto auth, we skip first request, it's the auth itself */; i < requestQueueCopy.size(); i++) 
+        {
+            const auto& request = requestQueueCopy[i];
+            if (request.callback)
+            {
+                request.callback(callback_message);
+            }
+        }
+    }
+    else if (!m_autoAuth) // If we are auto-auth, we don't callback for auth.
+    {
+        callback(callback_message);
+    }
+}
+
+void S2SContext_internal::authenticate(const S2SCallback& callback)
+{
+    if (m_state != State::Disonnected)
+    {
+        callback("{\"status\":400,\"message\":\"Already authenticated or authenticating\"}");
+        return;
+    }
+
+    auto pThis = shared_from_this();
+    authenticateInternal([pThis, callback](const Json::Value& data)
+    {
+        pThis->onAuthenticateResult(data, callback);
+    });
+}
+
+std::string S2SContext_internal::authenticateSync()
+{
+    std::string ret;
+    bool processed = false;
+
+    authenticate([&](const std::string& result)
+    {
+        ret = result;
+        processed = true;
+    });
+
+    // Timeout after 60sec. This call shouldn't be that long
+    auto startTime = std::chrono::steady_clock::now();
+    while (!processed && 
+           std::chrono::steady_clock::now() < 
+           startTime + std::chrono::seconds(60))
+    {
+        runCallbacks();
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+    if (!processed)
+    {
+        ret = "{\"status\":900,\"message\":\"Authenticate timeout\"}";
+    }
+
+    return std::move(ret);
+}
+            
 void S2SContext_internal::request(
     const std::string& json,
     const S2SCallback& callback)
 {
     // Authenticate if we are disconnected (Not auth-ed or auth-ing)
-    if (m_state == State::Disonnected)
+    if (m_state == State::Disonnected && m_autoAuth)
     {
         auto pThis = shared_from_this();
-        authenticate([pThis, callback](const Json::Value& data)
+        authenticateInternal([pThis, callback](const Json::Value& data)
         {
-            if (data.isNull() || data["status"].asInt() != 200)
-            {
-                pThis->disconnect();
-                callback("{\"status\":900}");
-            }
+            pThis->onAuthenticateResult(data, callback);
         });
     }
 
