@@ -26,13 +26,24 @@ public:
      * @param appId Application ID
      * @param serverName Server name
      * @param serverSecret Server secret key
-     * @param url The server url to send the request to.
+     * @param url The server url to send the request to. You can use
+     *            DEFAULT_S2S_URL for the default brainCloud servers.
+     * @param autoAuth If sets to true, the context will authenticate on the
+     *                 first request if it's not already. Otherwise,
+     *                 authenticate() or authenticateSync() must be called
+     *                 successfully first before doing requests. WARNING: This
+     *                 used to be implied true.
+     * 
+     *                 It is recommended to put this to false, manually
+     *                 call authenticate, and wait for a successful response
+     *                 before proceeding with other requests.
      * @return A new S2S context, or nullptr if something bad happened.
      */
     static S2SContextRef create(const std::string& appId,
                                 const std::string& serverName,
                                 const std::string& serverSecret,
-                                const std::string& url = DEFAULT_S2S_URL);
+                                const std::string& url,
+                                bool autoAuth);
 
     virtual ~S2SContext() {}
 
@@ -41,6 +52,20 @@ public:
      * @param enabled Will log if true. Default false
      */
     virtual void setLogEnabled(bool enabled) = 0;
+
+    /*
+     * Authenticate with brainCloud. If autoAuth is set to falsed, which is
+     * the default, this must be called successfully before doing other
+     * requests. See S2SContext::create
+     * @param callback Callback function
+     */
+    virtual void authenticate(const S2SCallback& callback) = 0;
+
+    /*
+     * Same as authenticate, but waits for result. This call is blocking.
+     * @return Authenticate result
+     */
+    virtual std::string authenticateSync() = 0;
 
     /*
      * Send an S2S request.
@@ -54,7 +79,7 @@ public:
     /*
      * Send an S2S request, and wait for result. This call is blocking.
      * @param json Content to be sent
-     * @return callback Callback function
+     * @return Request result
      */
     virtual std::string requestSync(const std::string& json) = 0;
 
