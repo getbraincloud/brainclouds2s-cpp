@@ -5,7 +5,7 @@
 #include <json/json.h>
 #include <chrono>
 
-using namespace std::chrono_literals;
+// using namespace std::chrono_literals; // This requires latest CMake on Ubuntu to detect C++ 17 compiler
 
 std::string BRAINCLOUD_APP_ID = "";
 std::string BRAINCLOUD_SERVER_NAME = "";
@@ -237,7 +237,7 @@ TEST_CASE("Valid Context - Auto auth", "[S2S]")
         while (processed_count < 5)
         {
             pContext->runCallbacks(100);
-            if (std::chrono::system_clock::now() - start_time > 20s)
+            if (std::chrono::system_clock::now() - start_time > std::chrono::seconds(20))
             {
                 printf("Timeout");
                 break;
@@ -326,7 +326,7 @@ TEST_CASE("Context with bad Server Secret - Auto auth", "[S2S]")
         while (processed_count < 5)
         {
             pContext->runCallbacks(100);
-            if (std::chrono::system_clock::now() - start_time > 20s)
+            if (std::chrono::system_clock::now() - start_time > std::chrono::seconds(20))
             {
                 printf("Timeout");
                 break;
@@ -476,7 +476,7 @@ TEST_CASE("Bad Requests - Auto auth", "[S2S]")
         while (processed_count < 5)
         {
             pContext->runCallbacks(100);
-            if (std::chrono::system_clock::now() - start_time > 20s)
+            if (std::chrono::system_clock::now() - start_time > std::chrono::seconds(20))
             {
                 printf("Timeout");
                 break;
@@ -592,7 +592,7 @@ TEST_CASE("Valid Context", "[S2S]")
         while (processed_count < 6)
         {
             pContext->runCallbacks(100);
-            if (std::chrono::system_clock::now() - start_time > 20s)
+            if (std::chrono::system_clock::now() - start_time > std::chrono::seconds(20))
             {
                 printf("Timeout");
                 break;
@@ -691,7 +691,7 @@ TEST_CASE("Context with bad Server Secret", "[S2S]")
         while (processed_count < 6)
         {
             pContext->runCallbacks(100);
-            if (std::chrono::system_clock::now() - start_time > 20s)
+            if (std::chrono::system_clock::now() - start_time > std::chrono::seconds(20))
             {
                 printf("Timeout");
                 break;
@@ -921,7 +921,7 @@ TEST_CASE("requestSync", "[S2S]")
         while (!processed)
         {
             pContext->runCallbacks(100);
-            if (std::chrono::system_clock::now() - start_time > 20s)
+            if (std::chrono::system_clock::now() - start_time > std::chrono::seconds(20))
             {
                 printf("Timeout");
                 break;
@@ -998,7 +998,7 @@ TEST_CASE("Bad Requests", "[S2S]")
         while (processed_count < 6)
         {
             pContext->runCallbacks(100);
-            if (std::chrono::system_clock::now() - start_time > 20s)
+            if (std::chrono::system_clock::now() - start_time > std::chrono::seconds(20))
             {
                 printf("Timeout");
                 break;
