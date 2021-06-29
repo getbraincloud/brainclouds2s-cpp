@@ -1,13 +1,78 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
-#include "ids.h"
-
 #include <brainclouds2s.h>
 #include <json/json.h>
 #include <chrono>
 
-using namespace std::chrono_literals;
+// using namespace std::chrono_literals; // This requires latest CMake on Ubuntu to detect C++ 17 compiler
+
+std::string BRAINCLOUD_APP_ID = "";
+std::string BRAINCLOUD_SERVER_NAME = "";
+std::string BRAINCLOUD_SERVER_SECRET = "";
+std::string BRAINCLOUD_SERVER_URL = "";
+
+bool idsLoaded = false;
+
+void loadIdsIfNot()
+{
+    if (idsLoaded) return;
+
+	FILE * fp = fopen("ids.txt", "r");
+	if (fp == NULL)
+	{
+		printf("ERROR: Failed to load ids.txt file!\n");
+		exit(1);
+	}
+	else
+	{
+		printf("Found ids.txt file!\n");
+		char buf[1024];
+		while (fgets(buf, sizeof(buf), fp) != NULL)
+		{
+			char *c = strchr(buf, '\n');
+			if (c) { *c = 0; }
+
+			c = strchr(buf, '\r');
+			if (c) { *c = 0; }
+
+			std::string line(buf);
+			if (line.find("appId") != std::string::npos)
+			{
+				BRAINCLOUD_APP_ID = line.substr(line.find("appId") + sizeof("appId"), line.length() - 1);
+			}
+			else if (line.find("serverName") != std::string::npos)
+			{
+				BRAINCLOUD_SERVER_NAME = line.substr(line.find("serverName") + sizeof("serverName"), line.length() - 1);
+			}
+			else if (line.find("serverSecret") != std::string::npos)
+			{
+				BRAINCLOUD_SERVER_SECRET = line.substr(line.find("serverSecret") + sizeof("serverSecret"), line.length() - 1);
+			}
+			else if (line.find("s2sUrl") != std::string::npos)
+			{
+				BRAINCLOUD_SERVER_URL = line.substr(line.find("s2sUrl") + sizeof("s2sUrl"), line.length() - 1);
+			}
+		}
+		fclose(fp);
+
+		printf("\nApp ID - %s", BRAINCLOUD_APP_ID.c_str());
+		printf("\nserverName - %s", BRAINCLOUD_SERVER_NAME.c_str());
+		printf("\nserverSecret - %s", BRAINCLOUD_SERVER_SECRET.c_str());
+		printf("\ns2sUrl - %s", BRAINCLOUD_SERVER_URL.c_str());
+	}
+
+    if (BRAINCLOUD_APP_ID.empty() ||
+        BRAINCLOUD_SERVER_NAME.empty() ||
+        BRAINCLOUD_SERVER_SECRET.empty() ||
+        BRAINCLOUD_SERVER_URL.empty())
+    {
+		printf("ERROR: ids.txt missing S2S properties!\n");
+		exit(1);
+    }
+
+    idsLoaded = true;
+}
 
 bool runAuth(S2SContextRef pContext)
 {
@@ -88,6 +153,7 @@ void wait(S2SContextRef pContext)
 
 TEST_CASE("Create context - Auto auth", "[S2S]")
 {
+    loadIdsIfNot();
     auto pContext = S2SContext::create(
         BRAINCLOUD_APP_ID,
         BRAINCLOUD_SERVER_NAME,
@@ -113,6 +179,7 @@ TEST_CASE("Create context - Auto auth", "[S2S]")
 
 TEST_CASE("Valid Context - Auto auth", "[S2S]")
 {
+    loadIdsIfNot();
     auto pContext = S2SContext::create(
         BRAINCLOUD_APP_ID,
         BRAINCLOUD_SERVER_NAME,
@@ -170,7 +237,7 @@ TEST_CASE("Valid Context - Auto auth", "[S2S]")
         while (processed_count < 5)
         {
             pContext->runCallbacks(100);
-            if (std::chrono::system_clock::now() - start_time > 20s)
+            if (std::chrono::system_clock::now() - start_time > std::chrono::seconds(20))
             {
                 printf("Timeout");
                 break;
@@ -201,6 +268,7 @@ TEST_CASE("Valid Context - Auto auth", "[S2S]")
 
 TEST_CASE("Context with bad Server Secret - Auto auth", "[S2S]")
 {
+    loadIdsIfNot();
     auto pContext = S2SContext::create(
         BRAINCLOUD_APP_ID,
         BRAINCLOUD_SERVER_NAME,
@@ -258,7 +326,7 @@ TEST_CASE("Context with bad Server Secret - Auto auth", "[S2S]")
         while (processed_count < 5)
         {
             pContext->runCallbacks(100);
-            if (std::chrono::system_clock::now() - start_time > 20s)
+            if (std::chrono::system_clock::now() - start_time > std::chrono::seconds(20))
             {
                 printf("Timeout");
                 break;
@@ -272,6 +340,7 @@ TEST_CASE("Context with bad Server Secret - Auto auth", "[S2S]")
 
 TEST_CASE("RunCallbacks with timeout - Auto auth", "[S2S]")
 {
+    loadIdsIfNot();
     auto pContext = S2SContext::create(
         BRAINCLOUD_APP_ID,
         BRAINCLOUD_SERVER_NAME,
@@ -313,6 +382,7 @@ TEST_CASE("RunCallbacks with timeout - Auto auth", "[S2S]")
 
 TEST_CASE("requestSync - Auto auth", "[S2S]")
 {
+    loadIdsIfNot();
     auto pContext = S2SContext::create(
         BRAINCLOUD_APP_ID,
         BRAINCLOUD_SERVER_NAME,
@@ -345,6 +415,7 @@ TEST_CASE("requestSync - Auto auth", "[S2S]")
 
 TEST_CASE("Bad Requests - Auto auth", "[S2S]")
 {
+    loadIdsIfNot();
     auto pContext = S2SContext::create(
         BRAINCLOUD_APP_ID,
         BRAINCLOUD_SERVER_NAME,
@@ -405,7 +476,7 @@ TEST_CASE("Bad Requests - Auto auth", "[S2S]")
         while (processed_count < 5)
         {
             pContext->runCallbacks(100);
-            if (std::chrono::system_clock::now() - start_time > 20s)
+            if (std::chrono::system_clock::now() - start_time > std::chrono::seconds(20))
             {
                 printf("Timeout");
                 break;
@@ -433,6 +504,7 @@ TEST_CASE("Bad Requests - Auto auth", "[S2S]")
 
 TEST_CASE("Create context", "[S2S]")
 {
+    loadIdsIfNot();
     auto pContext = S2SContext::create(
         BRAINCLOUD_APP_ID,
         BRAINCLOUD_SERVER_NAME,
@@ -458,6 +530,7 @@ TEST_CASE("Create context", "[S2S]")
 
 TEST_CASE("Valid Context", "[S2S]")
 {
+    loadIdsIfNot();
     auto pContext = S2SContext::create(
         BRAINCLOUD_APP_ID,
         BRAINCLOUD_SERVER_NAME,
@@ -519,7 +592,7 @@ TEST_CASE("Valid Context", "[S2S]")
         while (processed_count < 6)
         {
             pContext->runCallbacks(100);
-            if (std::chrono::system_clock::now() - start_time > 20s)
+            if (std::chrono::system_clock::now() - start_time > std::chrono::seconds(20))
             {
                 printf("Timeout");
                 break;
@@ -556,6 +629,7 @@ TEST_CASE("Valid Context", "[S2S]")
 
 TEST_CASE("Context with bad Server Secret", "[S2S]")
 {
+    loadIdsIfNot();
     auto pContext = S2SContext::create(
         BRAINCLOUD_APP_ID,
         BRAINCLOUD_SERVER_NAME,
@@ -617,7 +691,7 @@ TEST_CASE("Context with bad Server Secret", "[S2S]")
         while (processed_count < 6)
         {
             pContext->runCallbacks(100);
-            if (std::chrono::system_clock::now() - start_time > 20s)
+            if (std::chrono::system_clock::now() - start_time > std::chrono::seconds(20))
             {
                 printf("Timeout");
                 break;
@@ -631,6 +705,7 @@ TEST_CASE("Context with bad Server Secret", "[S2S]")
 
 TEST_CASE("RunCallbacks with timeout", "[S2S]")
 {
+    loadIdsIfNot();
     auto pContext = S2SContext::create(
         BRAINCLOUD_APP_ID,
         BRAINCLOUD_SERVER_NAME,
@@ -698,6 +773,7 @@ TEST_CASE("RunCallbacks with timeout", "[S2S]")
 
 TEST_CASE("requestSync", "[S2S]")
 {
+    loadIdsIfNot();
     auto pContext = S2SContext::create(
         BRAINCLOUD_APP_ID,
         BRAINCLOUD_SERVER_NAME,
@@ -845,7 +921,7 @@ TEST_CASE("requestSync", "[S2S]")
         while (!processed)
         {
             pContext->runCallbacks(100);
-            if (std::chrono::system_clock::now() - start_time > 20s)
+            if (std::chrono::system_clock::now() - start_time > std::chrono::seconds(20))
             {
                 printf("Timeout");
                 break;
@@ -857,6 +933,7 @@ TEST_CASE("requestSync", "[S2S]")
 
 TEST_CASE("Bad Requests", "[S2S]")
 {
+    loadIdsIfNot();
     auto pContext = S2SContext::create(
         BRAINCLOUD_APP_ID,
         BRAINCLOUD_SERVER_NAME,
@@ -921,7 +998,7 @@ TEST_CASE("Bad Requests", "[S2S]")
         while (processed_count < 6)
         {
             pContext->runCallbacks(100);
-            if (std::chrono::system_clock::now() - start_time > 20s)
+            if (std::chrono::system_clock::now() - start_time > std::chrono::seconds(20))
             {
                 printf("Timeout");
                 break;

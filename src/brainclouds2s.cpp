@@ -10,6 +10,7 @@
 #include <queue>
 #include <vector>
 #include <thread>
+#include <sstream>
 
 #define s2s_log(...) {printf(__VA_ARGS__); fflush(stdout);}
 
@@ -20,6 +21,12 @@ static const int SERVER_SESSION_EXPIRED = 40365;
 
 // 30 minutes heartbeat interval
 static const int HEARTBEAT_INTERVALE_MS = 60 * 30 * 1000;
+
+static std::string toString(const Json::Value &json)
+{
+    Json::FastWriter writer;
+    return writer.write(json);
+}
 
 class S2SContext_internal final 
     : public S2SContext
@@ -238,9 +245,7 @@ void S2SContext_internal::queueRequest(
             json["status"] = 900;
             json["message"] = "Failed to parse json";
 
-            Json::StreamWriterBuilder builder;
-            builder["indentation"] = ""; // If you want whitespace-less output
-            std::string callback_message = Json::writeString(builder, json);
+            std::string callback_message = toString(json);
             callback(callback_message);
             return;
         }
@@ -253,9 +258,7 @@ void S2SContext_internal::queueRequest(
         {
             const auto& message = messageResponses[0];
 
-            Json::StreamWriterBuilder builder;
-            builder["indentation"] = ""; // If you want whitespace-less output
-            std::string callback_message = Json::writeString(builder, message);
+            std::string callback_message = toString(message);
             callback(callback_message);
         }
         else
@@ -264,9 +267,7 @@ void S2SContext_internal::queueRequest(
             json["status"] = 900;
             json["message"] = "Malformed json";
 
-            Json::StreamWriterBuilder builder;
-            builder["indentation"] = ""; // If you want whitespace-less output
-            std::string callback_message = Json::writeString(builder, json);
+            std::string callback_message = toString(json);
             callback(callback_message);
         }
     });
@@ -308,9 +309,6 @@ void S2SContext_internal::doNextRequest()
 void S2SContext_internal::s2sRequest(
     const Json::Value& json, const S2SCallback& callback)
 {
-    Json::StreamWriterBuilder builder;
-    builder["indentation"] = ""; // If you want whitespace-less output
-
     auto packet = json;
     if (m_state == State::Authenticated)
     {
@@ -318,7 +316,7 @@ void S2SContext_internal::s2sRequest(
         packet["sessionId"] = m_sessionId;
     }
 
-    std::string postData = Json::writeString(builder, packet);
+    std::string postData = toString(packet);
 
     if (m_logEnabled)
     {
@@ -489,9 +487,7 @@ void S2SContext_internal::curlSend(const std::string& postData,
 void S2SContext_internal::onAuthenticateResult(const Json::Value& json, 
                                                const S2SCallback& callback)
 {
-    Json::StreamWriterBuilder builder;
-    builder["indentation"] = ""; // If you want whitespace-less output
-    std::string callback_message = Json::writeString(builder, json);
+    std::string callback_message = toString(json);
     
     if (json["status"].asInt() != 200)
     {
