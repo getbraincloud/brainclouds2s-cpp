@@ -380,6 +380,39 @@ TEST_CASE("RunCallbacks with timeout - Auto auth", "[S2S]")
     REQUIRE(status_code == 200);
 }
 
+TEST_CASE("RunCallbacks with nullptr callback - Auto auth", "[S2S]")
+{
+    loadIdsIfNot();
+    auto pContext = S2SContext::create(
+        BRAINCLOUD_APP_ID,
+        BRAINCLOUD_SERVER_NAME,
+        BRAINCLOUD_SERVER_SECRET,
+        BRAINCLOUD_SERVER_URL,
+        true
+    );
+
+    pContext->setLogEnabled(true);
+
+    auto request = "{ \
+        \"service\": \"time\", \
+        \"operation\": \"READ\", \
+        \"data\": {} \
+    }";
+
+    Json::Value data;
+    bool processed = false;
+    std::string ret;
+
+    pContext->request(request, nullptr);
+
+    pContext->runCallbacks(20 * 1000); // Auth
+    pContext->runCallbacks(20 * 1000); // The request
+
+    processed = true;
+
+    REQUIRE(processed);
+}
+
 TEST_CASE("requestSync - Auto auth", "[S2S]")
 {
     loadIdsIfNot();
@@ -768,6 +801,65 @@ TEST_CASE("RunCallbacks with timeout", "[S2S]")
 
         auto status_code = data["status"].asInt();
         REQUIRE(status_code == 200);
+    }
+}
+
+TEST_CASE("RunCallbacks with nullptr callback", "[S2S]")
+{
+    loadIdsIfNot();
+    auto pContext = S2SContext::create(
+        BRAINCLOUD_APP_ID,
+        BRAINCLOUD_SERVER_NAME,
+        BRAINCLOUD_SERVER_SECRET,
+        BRAINCLOUD_SERVER_URL,
+        false
+    );
+
+    pContext->setLogEnabled(true);
+
+    auto request = "{ \
+        \"service\": \"time\", \
+        \"operation\": \"READ\", \
+        \"data\": {} \
+    }";
+
+    // Auth
+    {
+        Json::Value data;
+        std::string ret;
+
+        bool processed = false;
+
+        pContext->authenticate([&](const std::string& result)
+        {
+            ret = result;
+            processed = true;
+        });
+
+        pContext->runCallbacks(20 * 1000);
+        REQUIRE(processed);
+
+        Json::Reader reader;
+        bool parsingSuccessful = reader.parse(ret.c_str(), data);
+        REQUIRE(parsingSuccessful);
+
+        auto status_code = data["status"].asInt();
+        REQUIRE(status_code == 200);
+    }
+
+    // The request
+    {
+        Json::Value data;
+        std::string ret;
+
+        bool processed = false;
+        
+        pContext->request(request, nullptr);
+
+        pContext->runCallbacks(20 * 1000);
+
+        processed = true;
+        REQUIRE(processed);
     }
 }
 

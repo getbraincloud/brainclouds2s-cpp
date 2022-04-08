@@ -225,7 +225,9 @@ void S2SContext_internal::queueRequest(
         if (!parsingSuccessful)
         {
             s2s_log("[S2S Error] Failed to parse user json");
-            callback("{\"status\":900,\"message\":\"Failed to parse user json\"}");
+            if (callback) {
+                callback("{\"status\":900,\"message\":\"Failed to parse user json\"}");
+            }
             return;
         }
         messages.append(data);
@@ -245,8 +247,10 @@ void S2SContext_internal::queueRequest(
             json["status"] = 900;
             json["message"] = "Failed to parse json";
 
-            std::string callback_message = toString(json);
-            callback(callback_message);
+            if (callback) {
+                std::string callback_message = toString(json);
+                callback(callback_message);
+            }
             return;
         }
 
@@ -258,8 +262,10 @@ void S2SContext_internal::queueRequest(
         {
             const auto& message = messageResponses[0];
 
-            std::string callback_message = toString(message);
-            callback(callback_message);
+            if (callback) {
+                std::string callback_message = toString(message);
+                callback(callback_message);
+            }
         }
         else
         {
@@ -267,8 +273,10 @@ void S2SContext_internal::queueRequest(
             json["status"] = 900;
             json["message"] = "Malformed json";
 
-            std::string callback_message = toString(json);
-            callback(callback_message);
+            if (callback) {
+                std::string callback_message = toString(json);
+                callback(callback_message);
+            }
         }
     });
 }
@@ -506,7 +514,9 @@ void S2SContext_internal::onAuthenticateResult(const Json::Value& json,
         disconnect();
 
         // Callback to everyone that were queued
-        callback(callback_message);
+        if (callback) {
+            callback(callback_message);
+        }
         for (size_t i = m_autoAuth ? 1 : 0 /* On Auto auth, we skip first request, it's the auth itself */; i < requestQueueCopy.size(); i++) 
         {
             const auto& request = requestQueueCopy[i];
@@ -518,7 +528,9 @@ void S2SContext_internal::onAuthenticateResult(const Json::Value& json,
     }
     else if (!m_autoAuth) // If we are auto-auth, we don't callback for auth.
     {
-        callback(callback_message);
+        if (callback) {
+            callback(callback_message);
+        }
     }
 }
 
