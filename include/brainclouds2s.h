@@ -11,7 +11,7 @@
 #include <string>
 
 static const std::string DEFAULT_S2S_URL = 
-    "https://sharedprod.braincloudservers.com/s2sdispatcher";
+    "https://api.braincloudservers.com/s2sdispatcher";
 
 class S2SContext;
 
