@@ -5,7 +5,11 @@
 
 #ifndef BRAINCLOUDS2S_H_INCLUDED
 #define BRAINCLOUDS2S_H_INCLUDED
-
+#ifndef LIBWEBSOCKETS_OFF
+#include "IRTTCallback.h"
+#include "IRTTConnectCallback.h"
+#include "IWebSocket.h"
+#endif
 #include <functional>
 #include <memory>
 #include <string>
@@ -48,13 +52,13 @@ public:
     virtual ~S2SContext() {}
 
     /*
-     * Set wether S2S messages and errors are logged to the console
+     * Set whether S2S messages and errors are logged to the console
      * @param enabled Will log if true. Default false
      */
     virtual void setLogEnabled(bool enabled) = 0;
 
     /*
-     * Authenticate with brainCloud. If autoAuth is set to falsed, which is
+     * Authenticate with brainCloud. If autoAuth is set to false, which is
      * the default, this must be called successfully before doing other
      * requests. See S2SContext::create
      * @param callback Callback function
