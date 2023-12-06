@@ -41,8 +41,8 @@ public:
     ~S2SContext_internal();
 
     void setLogEnabled(bool enabled) override;
-    void authenticate(const S2SCallback& callback);
-    std::string authenticateSync();
+    void authenticate(const S2SCallback& callback) override;
+    std::string authenticateSync() override;
     void request(
         const std::string& json,
         const S2SCallback& callback) override;
