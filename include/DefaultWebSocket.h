@@ -5,8 +5,6 @@
     #include "TargetConditionals.h"
 #endif
 
-#if (!defined(TARGET_OS_WATCH) || TARGET_OS_WATCH == 0)
-
 #include "IWebSocket.h"
 
 #include <libwebsockets.h>
@@ -85,5 +83,3 @@ namespace BrainCloud
         std::map<std::string, std::string> _authHeaders;
     };
 };
-
-#endif

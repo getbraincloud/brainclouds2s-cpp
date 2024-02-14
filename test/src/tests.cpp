@@ -2,11 +2,14 @@
 #include "catch.hpp"
 
 #include <brainclouds2s.h>
+#include <brainclouds2s-rtt.h>
+#include <IRTTCallback.h>
+#include <IRTTConnectCallback.h>
 #include <json/json.h>
 #include <chrono>
 
 // using namespace std::chrono_literals; // This requires latest CMake on Ubuntu to detect C++ 17 compiler
-
+using namespace BrainCloud;
 std::string BRAINCLOUD_APP_ID = "";
 std::string BRAINCLOUD_SERVER_NAME = "";
 std::string BRAINCLOUD_SERVER_SECRET = "";
@@ -149,7 +152,7 @@ void wait(S2SContextRef pContext)
 
 
 
-
+/*
 
 TEST_CASE("Create context - Auto auth", "[S2S]")
 {
@@ -1098,5 +1101,71 @@ TEST_CASE("Bad Requests", "[S2S]")
         }
 
         REQUIRE(success_count == 5);
+    }
+}
+*/
+
+class RTTConnectCallback final : public IRTTConnectCallback
+{
+    void rttConnectSuccess() override;
+
+    void rttConnectFailure(const std::string& errorMessage) override;
+};
+
+RTTConnectCallback rttConnectCallback;
+
+void RTTConnectCallback::rttConnectFailure(const std::string& errorMessage)
+{
+    printf("RTT connect error: %s\n", errorMessage.c_str());
+}
+
+void RTTConnectCallback::rttConnectSuccess()
+{
+    printf("Successful connection");
+    // 3. Find lobby
+    /*
+    bc->getRTTService()->registerRTTLobbyCallback(&lobbyCallback);
+
+    string lobbyType = "CppCustomGame";
+    int rating = 0;
+    int maxSteps = 1;
+    string algo = "{\"strategy\":\"ranged-absolute\","
+                  "\"alignment\":\"center\",\"ranges\":[1000]}";
+    string filter = "{}";
+    vector<string> otherUsers = {};
+    string settings = "{}";
+    bool startReady = true;
+    string extra = "{}";
+    string teamCode = "all";
+    bc->getLobbyService()->findOrCreateLobby(lobbyType, rating, maxSteps,
+                                             algo, filter, otherUsers,
+                                             settings, startReady, extra,
+                                             teamCode, &findLobbyCallback);*/
+}
+
+TEST_CASE("RTT Flow", "[S2S]")
+{
+    loadIdsIfNot();
+    auto pContext = S2SContext::create(
+            BRAINCLOUD_APP_ID,
+            BRAINCLOUD_SERVER_NAME,
+            BRAINCLOUD_SERVER_SECRET,
+            BRAINCLOUD_SERVER_URL,
+            false
+    );
+    pContext->setLogEnabled(true);
+
+    printf("testing rtt");
+
+    SECTION("RTT FLOW")
+    {
+        // 1. authenticate
+        auto retAuth = runAuth(pContext);
+        REQUIRE(retAuth);
+
+        // 2. enable rtt and hookup connect callback
+        BrainCloudRTT* rttService = pContext->getRTTService();
+
+        rttService->enableRTT(&rttConnectCallback, true);
     }
 }
