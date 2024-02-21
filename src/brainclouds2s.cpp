@@ -14,6 +14,8 @@
 
 #define s2s_log(...) {printf(__VA_ARGS__); fflush(stdout);}
 
+using namespace BrainCloud;
+
 using AuthenticateCallback = std::function<void(const Json::Value&)>;
 
 // Error code for expired session
@@ -41,8 +43,8 @@ public:
     ~S2SContext_internal();
 
     void setLogEnabled(bool enabled) override;
-    void authenticate(const S2SCallback& callback);
-    std::string authenticateSync();
+    void authenticate(const S2SCallback& callback) override;
+    std::string authenticateSync() override;
     void request(
         const std::string& json,
         const S2SCallback& callback) override;
