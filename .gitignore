@@ -55,3 +55,6 @@ ids.h
 build/
 .DS_Store
 .vscode/
+
+cmake-*/
+**/.idea/

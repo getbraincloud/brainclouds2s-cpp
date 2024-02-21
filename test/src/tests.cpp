@@ -6,6 +6,7 @@
 #include <chrono>
 
 // using namespace std::chrono_literals; // This requires latest CMake on Ubuntu to detect C++ 17 compiler
+using namespace BrainCloud;
 
 std::string BRAINCLOUD_APP_ID = "";
 std::string BRAINCLOUD_SERVER_NAME = "";
