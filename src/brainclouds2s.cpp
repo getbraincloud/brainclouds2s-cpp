@@ -144,14 +144,21 @@ namespace BrainCloud {
             : m_state(State::Disonnected), m_heartbeatInverval(HEARTBEAT_INTERVALE_MS), m_autoAuth(autoAuth),
               m_rttComms(new RTTComms(this))
 {
-        m_rttService = new BrainCloudRTT(m_rttComms, this);
         m_appId = appId;
         m_serverName = serverName;
         m_serverSecret = serverSecret;
         m_url = url;
+        m_rttService = new BrainCloudRTT(m_rttComms, this);
+        if (m_rttComms)
+        {
+            m_rttComms->resetCommunication();
+            m_rttComms->initialize();
+        }
     }
 
     S2SContext_internal::~S2SContext_internal() {
+        delete m_rttService;
+        delete m_rttComms;
         disconnect();
     }
 

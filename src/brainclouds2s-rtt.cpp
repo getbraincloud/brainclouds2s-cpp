@@ -2,9 +2,6 @@
 #include "brainclouds2s.h"
 #include "RTTComms.h"
 #include "IServerCallback.h"
-#include "ServerCall.h"
-#include "ServiceName.h"
-#include "ServiceOperation.h"
 
 namespace BrainCloud {
     BrainCloudRTT::BrainCloudRTT(RTTComms *in_comms, S2SContext* c)
@@ -17,7 +14,7 @@ namespace BrainCloud {
         Json::Value nullMsg = Json::nullValue;
         bool processed = false;
         std::string ret;
-        ServerCall* sc = new ServerCall(ServiceName::RTTRegistration, ServiceOperation::RequestClientConnection, nullMsg, in_callback);
+        //ServerCall* sc = new ServerCall(ServiceName::RTTRegistration, ServiceOperation::RequestClientConnection, nullMsg, in_callback);
         //m_client->getBrainCloudComms()->addToQueue(sc);
 
 
@@ -28,14 +25,14 @@ namespace BrainCloud {
         //Json::Value message(Json::ValueType::objectValue);
         json["service"] = "rttRegistration";
         json["operation"] = "REQUEST_SYSTEM_CONNECTION";
-        json["data"] = nullMsg;
+        //json["data"] = nullMsg;
         //messages.append(message);
         //json["messages"] = messages;
 
+        Json::StyledWriter writer;
+        printf("%s",writer.write(json).c_str());
+
         Json::FastWriter fw;
-
-        printf("%s",fw.write(json).c_str());
-
         m_S2SContext->request(fw.write(json), [&](const std::string& result)
         {
             ret = result;

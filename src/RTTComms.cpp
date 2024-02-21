@@ -10,6 +10,8 @@
 #include <thread>
 #include <sstream>
 
+#define RTTCOMMS_LOG_EVERY_METHODS 1
+
 namespace BrainCloud
 {
     RTTComms::RTTCallback::RTTCallback(RTTCallbackType type)
