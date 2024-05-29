@@ -58,3 +58,4 @@ build/
 
 cmake-*/
 **/.idea/
+ids.txt
