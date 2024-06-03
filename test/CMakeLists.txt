@@ -7,6 +7,6 @@ set(CMAKE_CXX_STANDARD 11)
 include_directories(./src)
 
 file(GLOB src_files ./src/*.*)
-add_executable(testbcs2s ${src_files})
+add_executable(testbcs2s ${src_files} src/tests.h)
 
 target_link_libraries(testbcs2s brainclouds2s)
