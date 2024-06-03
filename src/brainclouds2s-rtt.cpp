@@ -1,7 +1,6 @@
 #include "brainclouds2s-rtt.h"
 #include "brainclouds2s.h"
 #include "RTTComms.h"
-#include "IServerCallback.h"
 
 namespace BrainCloud {
     BrainCloudRTT::BrainCloudRTT(RTTComms *in_comms, S2SContext* c)

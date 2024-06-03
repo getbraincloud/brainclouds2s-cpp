@@ -9,7 +9,6 @@
 #include "ServiceName.h"
 #include "ServiceOperation.h"
 #include "brainclouds2s-rtt.h"
-//#include "brainclouds2s.h"
 
 #include "json/json.h"
 
@@ -27,7 +26,7 @@ namespace BrainCloud
     class IRTTCallback;
     class ISocket;
     class IWebSocket;
-    class BrainCloudRTT;
+
     class S2SContext;
 
     class RTTComms : public IServerCallback

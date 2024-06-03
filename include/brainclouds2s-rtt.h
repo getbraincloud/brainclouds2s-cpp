@@ -1,9 +1,6 @@
 // Copyright 2018 bitHeads, Inc. All Rights Reserved.
 
 #pragma once
-//#include "brainclouds2s.h"
-//#include "brainclouds2s-rtt.h"
-//#include "RTTComms.h"
 #include "json/json.h"
 #include <string>
 
@@ -14,8 +11,6 @@ namespace BrainCloud
     class IRTTCallback;
     class IServerCallback;
     class S2SContext;
-
-    //using RTTCallback = std::function<void(const Json::Value&)>;
 
     class BrainCloudRTT
     {
@@ -43,7 +38,7 @@ namespace BrainCloud
          * need to be polled using GET_EVENTS. By enabling this, events will
          * be received instantly when they happen through a TCP connection to an Event Server.
          *
-         * This function will first call requestClientConnection, then connect to the address
+         * This function will first call requestS2SConnection, then connect to the address
          *
          * @param callback The callback.
          * @param useWebSocket Use web sockets instead of TCP for the internal connections. Default is true

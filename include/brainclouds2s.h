@@ -9,12 +9,18 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include "brainclouds2s-rtt.h"
+#include <IRTTConnectCallback.h>
+
 namespace BrainCloud {
     static const std::string DEFAULT_S2S_URL =
             "https://api.braincloudservers.com/s2sdispatcher";
 
+    static const std::string s_brainCloudS2SVersion = "5.3.0";
+
     class S2SContext;
     class BrainCloudRTT;
+    class IRTTConnectCallback;
     using S2SCallback = std::function<void(const std::string &)>;
     using S2SContextRef = std::shared_ptr<S2SContext>;
 
@@ -67,6 +73,20 @@ namespace BrainCloud {
         virtual std::string authenticateSync() = 0;
 
         /*
+         * Authenticate with brainCloud. If autoAuth is set to false, which is
+         * the default, this must be called successfully before doing other
+         * requests. See S2SContext::create
+         * @param callback Callback function
+         */
+        virtual void enableRTT(IRTTConnectCallback* callback) = 0;
+
+        /*
+         * Same as authenticate, but waits for result. This call is blocking.
+         * @return Authenticate result
+         */
+        virtual std::string enableRTTSync() = 0;
+
+        /*
          * Send an S2S request.
          * @param json Content to be sent
          * @param callback Callback function
@@ -97,6 +117,8 @@ namespace BrainCloud {
         const std::string& getServerUrl() const {return m_url;}
         const std::string& getSessionId() const {return m_sessionId;}
 
+        const std::string& getS2SVersion() const {return s_brainCloudS2SVersion;}
+
     protected:
         S2SContext() {}
 
@@ -106,5 +128,16 @@ namespace BrainCloud {
         std::string m_url = "";
         std::string m_sessionId = "";
     };
+
+// brainCloud RTT Connection callbacks
+class RTTS2SConnectCallback final : public BrainCloud::IRTTConnectCallback
+{
+public:
+    std::string ret;
+    bool processed = false;
+    void rttConnectSuccess() override;
+
+    void rttConnectFailure(const std::string& errorMessage) override;
+};
 }
 #endif /* BRAINCLOUDS2S_H_INCLUDED */

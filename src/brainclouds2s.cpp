@@ -49,6 +49,10 @@ namespace BrainCloud {
 
         std::string authenticateSync() override;
 
+        void enableRTT(IRTTConnectCallback* callback) override;
+
+        std::string enableRTTSync() override;
+
         void request(
                 const std::string &json,
                 const S2SCallback &callback) override;
@@ -549,6 +553,43 @@ namespace BrainCloud {
         }
 
         return std::move(ret);
+    }
+
+    void RTTS2SConnectCallback::rttConnectSuccess()
+    {
+        processed = true;
+    }
+
+    void RTTS2SConnectCallback::rttConnectFailure(const std::string& errorMessage)
+    {
+        processed = true;
+        ret = errorMessage;
+    }
+    void S2SContext_internal::enableRTT(IRTTConnectCallback* callback) {
+        auto pThis = shared_from_this();
+        m_rttService->enableRTT(callback, true);
+    }
+
+    std::string S2SContext_internal::enableRTTSync() {
+
+        RTTS2SConnectCallback bcRTTConnectCallback;
+
+        enableRTT(&bcRTTConnectCallback);
+
+        // Timeout after 60sec. This call shouldn't be that long
+        auto startTime = std::chrono::steady_clock::now();
+        while (!bcRTTConnectCallback.processed &&
+               std::chrono::steady_clock::now() <
+               startTime + std::chrono::seconds(60)) {
+            runCallbacks();
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+
+        if (!bcRTTConnectCallback.processed) {
+            bcRTTConnectCallback.ret = "{\"status\":900,\"message\":\"RTT timeout\"}";
+        }
+
+        return std::move(bcRTTConnectCallback.ret);
     }
 
     void S2SContext_internal::request(
