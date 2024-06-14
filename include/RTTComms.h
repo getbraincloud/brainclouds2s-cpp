@@ -53,6 +53,10 @@ namespace BrainCloud
         void deregisterRTTCallback(const ServiceName& serviceName);
         void deregisterAllRTTCallbacks();
 
+        // IServerCallback
+        void serverCallback(ServiceName serviceName, ServiceOperation serviceOperation, const std::string& jsonData);
+        void serverError(ServiceName serviceName, ServiceOperation serviceOperation, int statusCode, int reasonCode, const std::string& jsonError);
+
     private:
         enum RTTCallbackType
         {
@@ -73,10 +77,6 @@ namespace BrainCloud
             RTTCallback(RTTCallbackType type, const Json::Value& json);
             RTTCallback(RTTCallbackType type, const Json::Value& json, const std::string& message);
         };
-
-        // IServerCallback
-        void serverCallback(ServiceName serviceName, ServiceOperation serviceOperation, const std::string& jsonData);
-        void serverError(ServiceName serviceName, ServiceOperation serviceOperation, int statusCode, int reasonCode, const std::string& jsonError);
 
         void processRTTMessage(const ServiceOperation& serviceOperation, const Json::Value& jsonData);
         Json::Value getEndpointToUse(const Json::Value& endpoints) const;

@@ -34,6 +34,7 @@ namespace BrainCloud {
         Json::FastWriter fw;
         m_S2SContext->request(fw.write(json), [&](const std::string& result)
         {
+            m_commsLayer->serverCallback(ServiceName::RTTRegistration, ServiceOperation::RequestSystemConnection, result);
             ret = result;
             processed = true;
         });

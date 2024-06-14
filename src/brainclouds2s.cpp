@@ -555,24 +555,29 @@ namespace BrainCloud {
         return std::move(ret);
     }
 
-    void RTTS2SConnectCallback::rttConnectSuccess()
-    {
-        processed = true;
-    }
 
-    void RTTS2SConnectCallback::rttConnectFailure(const std::string& errorMessage)
-    {
-        processed = true;
-        ret = errorMessage;
-    }
-    void S2SContext_internal::enableRTT(IRTTConnectCallback* callback) {
+    void S2SContext_internal::enableRTT(IRTTConnectCallback *callback) {
         auto pThis = shared_from_this();
         m_rttService->enableRTT(callback, true);
     }
 
     std::string S2SContext_internal::enableRTTSync() {
 
-        RTTS2SConnectCallback bcRTTConnectCallback;
+        // brainCloud RTT Connection callbacks
+        class RTTS2SConnectCallback final : public BrainCloud::IRTTConnectCallback
+        {
+        public:
+            std::string ret;
+            bool processed = false;
+            void rttConnectSuccess() override{
+                processed = true;
+            };
+
+            void rttConnectFailure(const std::string& errorMessage) override{
+                processed = true;
+                ret = errorMessage;
+            };
+        }bcRTTConnectCallback;
 
         enableRTT(&bcRTTConnectCallback);
 
@@ -700,7 +705,6 @@ namespace BrainCloud {
             if (timeDiff >= std::chrono::milliseconds(m_heartbeatInverval)) {
                 sendHeartbeat();
                 m_heartbeatStartTime = now;
-                timeDiff = decltype(timeDiff)::zero();
             }
 
             // Just wait for the specified timeout
@@ -720,5 +724,8 @@ namespace BrainCloud {
         }
 
         processCallbacks();
+
+        m_rttComms->runCallbacks();
     }
+
 }

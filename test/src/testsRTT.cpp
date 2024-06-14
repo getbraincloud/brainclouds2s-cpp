@@ -5,7 +5,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 // RTT Flow scenario
 ///////////////////////////////////////////////////////////////////////////////
-
 TEST_CASE("RTT Flow", "[S2S]")
 {
     loadIdsIfNot();
@@ -14,27 +13,43 @@ TEST_CASE("RTT Flow", "[S2S]")
             BRAINCLOUD_SERVER_NAME,
             BRAINCLOUD_SERVER_SECRET,
             BRAINCLOUD_SERVER_URL,
-            true
+            false
     );
     pContext->setLogEnabled(true);
 
-    printf("testing rtt");
-
     SECTION("RTT FLOW")
     {
-        // 1. authenticate
+        // 1. authenticate (if autoAuth is false)
         auto retAuth = runAuth(pContext);
         REQUIRE(retAuth);
 
         // 2. enable rtt and hookup connect callback
         BrainCloudRTT* rttService = pContext->getRTTService();
-        RTTS2SConnectCallback rttConnectCallback;
+
+        // brainCloud RTT Connection callbacks
+        class TestConnectCallback final : public BrainCloud::IRTTConnectCallback
+        {
+        public:
+            std::string ret;
+            bool processed = false;
+            void rttConnectSuccess() override{
+                processed = true;
+            };
+
+            void rttConnectFailure(const std::string& errorMessage) override{
+                processed = true;
+                ret = errorMessage;
+            };
+        }rttConnectCallback;
+
         rttService->enableRTT(&rttConnectCallback, true);
 
         while (!rttConnectCallback.processed)
         {
-            pContext->runCallbacks(100);
+            pContext->runCallbacks();
         }
+
+ //        pContext->enableRTTSync();
 
         REQUIRE(rttService->getRTTEnabled());
     }

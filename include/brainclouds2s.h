@@ -128,16 +128,5 @@ namespace BrainCloud {
         std::string m_url = "";
         std::string m_sessionId = "";
     };
-
-// brainCloud RTT Connection callbacks
-class RTTS2SConnectCallback final : public BrainCloud::IRTTConnectCallback
-{
-public:
-    std::string ret;
-    bool processed = false;
-    void rttConnectSuccess() override;
-
-    void rttConnectFailure(const std::string& errorMessage) override;
-};
 }
 #endif /* BRAINCLOUDS2S_H_INCLUDED */

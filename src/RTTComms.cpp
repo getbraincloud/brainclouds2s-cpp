@@ -203,7 +203,9 @@ namespace BrainCloud
     void RTTComms::runCallbacks()
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::runCallbacks" << std::endl;
+        // removing this from logging every method BECAUSE it prints out too often and wipes out other useful logs
+        // keeping in code though since we may want to print this sometimes
+        // std::cout << "VERBOSE: RTTComms::runCallbacks" << std::endl;
 #endif
         _eventQueueMutex.lock();
         auto eventsCopy = _callbackEventQueue;
@@ -304,7 +306,8 @@ namespace BrainCloud
 #if RTTCOMMS_LOG_EVERY_METHODS
         std::cout << "VERBOSE: RTTComms::processRTTMessage" << std::endl;
 #endif
-        if (serviceOperation == ServiceOperation::RequestClientConnection)
+        //REQUEST_SYSTEM_CONNECTION
+        if (serviceOperation == ServiceOperation::RequestSystemConnection)
         {
             const Json::Value& data = jsonData["data"];
             _endpoint = getEndpointToUse(data["endpoints"]);
