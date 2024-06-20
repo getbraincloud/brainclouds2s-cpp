@@ -15,8 +15,13 @@ set(CMAKE_CXX_STANDARD 11)
 # Application source files
 file(GLOB src_files ./src/*.*)
 
+file(GLOB_RECURSE JSONCPP_INCS_FILES "${CMAKE_CURRENT_SOURCE_DIR}/lib/jsoncpp-1.0.0/*.h")
+file(GLOB_RECURSE JSONCPP_SRCS_FILES "${CMAKE_CURRENT_SOURCE_DIR}/lib/jsoncpp-1.0.0/*.cpp")
+
 # Relay Server
-add_library(brainclouds2s ${src_files})
+add_library(brainclouds2s ${src_files}
+        ${JSONCPP_INCS_FILES}
+        ${JSONCPP_SRCS_FILES})
 
 # CURL
 find_package(CURL REQUIRED)
@@ -24,9 +29,7 @@ list(APPEND includes PUBLIC ${CURL_INCLUDE_DIRS})
 list(APPEND libs PUBLIC ${CURL_LIBRARIES})
 
 # JsonCpp
-find_package(JsonCpp REQUIRED)
-list(APPEND includes PUBLIC ${JSONCPP_INCLUDE_DIRS})
-list(APPEND libs PUBLIC ${JSONCPP_LIBRARY})
+list(APPEND includes PUBLIC "lib/jsoncpp-1.0.0")
 
 # pthreads
 find_package(Threads)
