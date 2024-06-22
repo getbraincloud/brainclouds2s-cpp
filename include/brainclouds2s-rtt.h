@@ -4,6 +4,10 @@
 #include "json/json.h"
 #include <string>
 
+#include <fstream>
+#include <iostream>
+#include <thread>
+#include <sstream>
 namespace BrainCloud
 {
     class RTTComms;

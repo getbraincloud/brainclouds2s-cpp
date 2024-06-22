@@ -6,6 +6,7 @@
 #include "ITCPSocket.h"
 #include "TimeUtil.h"
 
+#include <fstream>
 #include <iostream>
 #include <thread>
 #include <sstream>
@@ -52,14 +53,14 @@ namespace BrainCloud
         , _lastHeartbeatTime(0)
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::RTTComms" << std::endl;
+        s2s_log("VERBOSE: RTTComms::RTTComms");
 #endif
     }
 
     RTTComms::~RTTComms()
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::~RTTComms" << std::endl;
+        s2s_log("VERBOSE: RTTComms::~RTTComms");
 #endif
         shutdown();
     }
@@ -67,7 +68,7 @@ namespace BrainCloud
     void RTTComms::initialize()
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::initialize" << std::endl;
+        s2s_log("VERBOSE: RTTComms::initialize");
 #endif
         _isInitialized = true;
     }
@@ -75,7 +76,7 @@ namespace BrainCloud
     bool RTTComms::isInitialized() const
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::isInitialized" << std::endl;
+        s2s_log("VERBOSE: RTTComms::isInitialized");
 #endif
         return _isInitialized;
     }
@@ -83,7 +84,7 @@ namespace BrainCloud
     void RTTComms::shutdown()
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::shutdown" << std::endl;
+        s2s_log("VERBOSE: RTTComms::shutdown");
 #endif
         resetCommunication();
         _isInitialized = false;
@@ -92,7 +93,7 @@ namespace BrainCloud
     void RTTComms::resetCommunication()
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::resetCommunication" << std::endl;
+        s2s_log("VERBOSE: RTTComms::resetCommunication");
 #endif
         if (isRTTEnabled())
         {
@@ -108,7 +109,7 @@ namespace BrainCloud
     void RTTComms::closeSocket()
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::closeSocket" << std::endl;
+        s2s_log("VERBOSE: RTTComms::closeSocket");
 #endif
         std::unique_lock<std::mutex> lock(_socketMutex);
 
@@ -133,29 +134,32 @@ namespace BrainCloud
             if (_disconnectedWithReason == true)
             {
                 Json::FastWriter myWriter;
-                std::string output ="\n" + myWriter.write(_msg); 
+                std::string output ="\n" + myWriter.write(_msg);
                 printf("%s",output.c_str());
-            } 
+            }
         }
     }
 
     void RTTComms::enableRTT(IRTTConnectCallback* in_callback, bool in_useWebSocket)
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::enableRTT" << std::endl;
+        s2s_log("VERBOSE: RTTComms::enableRTT");
 #endif
         if(isRTTEnabled() || _rttConnectionStatus == BrainCloudRTT::RTTConnectionStatus::Connecting)
         {
             return;
         }
         else
-        {               
+        {
             _connectCallback = in_callback;
             _useWebSocket = in_useWebSocket;
 
             _appId = _context->getAppId();
             _sessionId = _context->getSessionId();
 
+            //s2s_log("request from %p", this);
+            s2s_log(static_cast<std::stringstream&&>(std::stringstream{} <<" JO JO JO JO request from "<<this<<std::endl<<std::flush));
+            //auto pThis = std::unique_ptr<IServerCallback>((this));
             _context->getRTTService()->requestS2SConnection(this);
         }
     }
@@ -163,15 +167,15 @@ namespace BrainCloud
     void RTTComms::disableRTT()
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::disableRTT" << std::endl;
+        s2s_log("VERBOSE: RTTComms::disableRTT");
 #endif
         if(!isRTTEnabled() || _rttConnectionStatus == BrainCloudRTT::RTTConnectionStatus::Disconnecting)
         {
             return;
         }
         else
-        {     
-            resetCommunication();   
+        {
+            resetCommunication();
         }
     }
 
@@ -205,7 +209,7 @@ namespace BrainCloud
 #if RTTCOMMS_LOG_EVERY_METHODS
         // removing this from logging every method BECAUSE it prints out too often and wipes out other useful logs
         // keeping in code though since we may want to print this sometimes
-        // std::cout << "VERBOSE: RTTComms::runCallbacks" << std::endl;
+        // std::cout << "VERBOSE: RTTComms::runCallbacks");
 #endif
         _eventQueueMutex.lock();
         auto eventsCopy = _callbackEventQueue;
@@ -250,7 +254,7 @@ namespace BrainCloud
     void RTTComms::registerRTTCallback(const ServiceName& serviceName, IRTTCallback* in_callback)
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::registerRTTCallback" << std::endl;
+        s2s_log("VERBOSE: RTTComms::registerRTTCallback");
 #endif
         _callbacks[serviceName.getValue()] = in_callback;
     }
@@ -258,7 +262,7 @@ namespace BrainCloud
     void RTTComms::deregisterRTTCallback(const ServiceName& serviceName)
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::deregisterRTTCallback" << std::endl;
+        s2s_log("VERBOSE: RTTComms::deregisterRTTCallback");
 #endif
         std::map<std::string, IRTTCallback*>::iterator it = _callbacks.find(serviceName.getValue());
         if (it != _callbacks.end())
@@ -270,7 +274,7 @@ namespace BrainCloud
     void RTTComms::deregisterAllRTTCallbacks()
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::deregisterAllRTTCallbacks" << std::endl;
+        s2s_log("VERBOSE: RTTComms::deregisterAllRTTCallbacks");
 #endif
         _callbacks.clear();
     }
@@ -279,22 +283,24 @@ namespace BrainCloud
     void RTTComms::serverCallback(ServiceName serviceName, ServiceOperation serviceOperation, const std::string& jsonData)
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::serverCallback()" << serviceName.getValue() << ", " << serviceOperation.getValue() << ", " << jsonData << std::endl;
+        s2s_log(static_cast<std::stringstream&&>(std::stringstream{} << "VERBOSE: RTTComms::serverCallback()" << serviceName.getValue() << ", " << serviceOperation.getValue() << ", " << jsonData));
 #endif
+        s2s_log(static_cast<std::stringstream&&>(std::stringstream{} <<"serverCallback "<<std::endl));
+
         if (serviceName == ServiceName::RTTRegistration)
         {
             Json::Reader reader;
             Json::Value json;
             bool parsingSuccessful = reader.parse(jsonData, json);
             if (parsingSuccessful && json["status"].asInt() == 200)
-                processRTTMessage(serviceOperation, json);
+                processRttRegistration(serviceOperation, json);
         }
     }
 
     void RTTComms::serverError(ServiceName serviceName, ServiceOperation serviceOperation, int statusCode, int reasonCode, const std::string& jsonError)
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::serverError()" << serviceName.getValue() << ", " << serviceOperation.getValue() << ", " << statusCode << ", " << reasonCode << ", " << jsonError << std::endl;
+        s2s_log(static_cast<std::stringstream&&>(std::stringstream{} << "VERBOSE: RTTComms::serverError()" << serviceName.getValue() << ", " << serviceOperation.getValue() << ", " << statusCode << ", " << reasonCode << ", " << jsonError));
 #endif
         if (_connectCallback)
         {
@@ -302,10 +308,10 @@ namespace BrainCloud
         }
     }
 
-    void RTTComms::processRTTMessage(const ServiceOperation& serviceOperation, const Json::Value& jsonData)
+    void RTTComms::processRttRegistration(const ServiceOperation& serviceOperation, const Json::Value& jsonData)
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::processRTTMessage" << std::endl;
+        s2s_log("VERBOSE: RTTComms::processRttRegistration");
 #endif
         //REQUEST_SYSTEM_CONNECTION
         if (serviceOperation == ServiceOperation::RequestSystemConnection)
@@ -322,6 +328,7 @@ namespace BrainCloud
             }
 
             _auth = data["auth"];
+            //s2s_log("processing connect...");
             connect();
         }
     }
@@ -329,7 +336,7 @@ namespace BrainCloud
     Json::Value RTTComms::getEndpointToUse(const Json::Value& endpoints) const
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::getEndpointToUse" << std::endl;
+        s2s_log("VERBOSE: RTTComms::getEndpointToUse");
 #endif
         if (_useWebSocket)
         {
@@ -358,7 +365,7 @@ namespace BrainCloud
     Json::Value RTTComms::getEndpointForType(const Json::Value& endpoints, const std::string& type, bool wantSsl)
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::getEndpointForType" << std::endl;
+        std::cout<<("VERBOSE: RTTComms::getEndpointForType") <<std::endl<<std::flush;
 #endif
         for (int i = 0; i < (int)endpoints.size(); ++i)
         {
@@ -386,22 +393,17 @@ namespace BrainCloud
     void RTTComms::connect()
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::connect" << std::endl;
+        s2s_log("VERBOSE: RTTComms::connect");
 #endif
         _rttConnectionStatus = BrainCloudRTT::RTTConnectionStatus::Connecting;
 #if (!defined(TARGET_OS_WATCH) || TARGET_OS_WATCH == 0)
         _disconnectedWithReason = false;
+//        std::cout<<"in thread "<<std::endl<<std::flush;
+     //   s2s_log("here in thread JOANNE");
         std::thread connectionThread([this]
         {
             std::string host = _endpoint["host"].asString();
             int port = _endpoint["port"].asInt();
-
-            int foo = 1;
-std::cout<<"foo"<<std::endl<<std::flush;
-
-foo = 4;
-std::string foostring;
-
             std::vector<std::string> keys = _auth.getMemberNames();
             std::map<std::string, std::string> headers;
             for (int i = 0; i < (int)keys.size(); ++i)
@@ -422,7 +424,7 @@ std::string foostring;
                         {
                             host = "ws://" + host;
                         }
-                        
+
                         // Add headers to the query URL
                         if (!headers.empty())
                         {
@@ -480,7 +482,7 @@ std::string foostring;
     void RTTComms::failedToConnect()
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::failedToConnect" << std::endl;
+        s2s_log("VERBOSE: RTTComms::failedToConnect");
 #endif
         std::string host;
         int port = 0;
@@ -499,19 +501,19 @@ std::string foostring;
     Json::Value RTTComms::buildConnectionRequest(const std::string& protocol)
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::buildConnectionRequest" << std::endl;
+        s2s_log("VERBOSE: RTTComms::buildConnectionRequest");
 #endif
         Json::Value json;
         json["operation"] = "CONNECT";
         json["service"] = "rtt";
-        
+
         Json::Value system;
         system["protocol"] = protocol;
         system["platform"] = "C++";
-        
+
         Json::Value jsonData;
         jsonData["appId"] = _appId;
-        jsonData["profileId"] = _profileId;
+        jsonData["profileId"] = "s";
         jsonData["sessionId"] = _sessionId;
         jsonData["auth"] = _auth;
         jsonData["system"] = system;
@@ -523,10 +525,10 @@ std::string foostring;
     void RTTComms::onSocketConnected()
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::onSocketConnected" << std::endl;
+        s2s_log("VERBOSE: RTTComms::onSocketConnected");
 #endif
         startReceiving();
-
+        s2s_log(static_cast<std::stringstream&&>(std::stringstream{} <<"why am I doing this again"<<std::endl));
         if (!send(buildConnectionRequest(_useWebSocket ? "ws" : "tcp")))
         {
             failedToConnect();
@@ -547,6 +549,8 @@ std::string foostring;
         {
             Json::FastWriter writer;
             std::string message = writer.write(jsonData);
+
+            s2s_log(static_cast<std::stringstream&&>(std::stringstream{} <<"sending "<<message<<std::endl));
             _socket->send(message);
         }
 
@@ -556,7 +560,7 @@ std::string foostring;
     void RTTComms::startReceiving()
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::startReceiving" << std::endl;
+        s2s_log("VERBOSE: RTTComms::startReceiving");
 #endif
         _receivingRunning = true;
         std::thread receiveThread([this]
@@ -581,7 +585,7 @@ std::string foostring;
     void RTTComms::startHeartbeat()
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::startHeartbeat" << std::endl;
+        s2s_log("VERBOSE: RTTComms::startHeartbeat");
 #endif
         _heartbeatRunning = true;
         std::thread heartbeatThread([this]
@@ -635,10 +639,12 @@ std::string foostring;
     void RTTComms::processRttMessage(const Json::Value& json, const std::string& message)
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        std::cout << "VERBOSE: RTTComms::processRttMessage(" << message << std::endl;
+        s2s_log(static_cast<std::stringstream&&>(std::stringstream{} << "VERBOSE: RTTComms::processRttMessage(" << message));
 #endif
+
         std::string serviceName = json["service"].asString();
         std::string operation = json["operation"].asString();
+        s2s_log(static_cast<std::stringstream&&>(std::stringstream{} <<serviceName.c_str()<<message.c_str()<<std::endl));
         if (serviceName == "rtt")
         {
             if (operation == "CONNECT")

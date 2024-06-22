@@ -12,8 +12,7 @@
 #include <vector>
 #include <thread>
 #include <sstream>
-
-#define s2s_log(...) {printf(__VA_ARGS__); fflush(stdout);}
+#include <iomanip>
 
 using AuthenticateCallback = std::function<void(const Json::Value&)>;
 
@@ -335,7 +334,7 @@ namespace BrainCloud {
         std::string postData = toString(packet);
 
         if (m_logEnabled) {
-            s2s_log("[S2S SEND %s] %s\n", m_appId.c_str(), postData.c_str());
+            s2s_log(static_cast<std::stringstream&&>(std::stringstream{} << "[S2S SEND " << m_appId.c_str() <<"] "<< postData.c_str()));
         }
 
         auto pThis = shared_from_this();
@@ -350,15 +349,15 @@ namespace BrainCloud {
 
         curlSend(postData, [pThis, callback, popAndDoNextRequest](const std::string &data) {
             if (pThis->m_logEnabled) {
-                s2s_log("[S2S RECV %s] %s\n",
-                        pThis->m_appId.c_str(), data.c_str());
+                s2s_log(static_cast<std::stringstream&&>(std::stringstream{} << "[S2S RECV " <<
+                                                                     pThis->m_appId.c_str() <<"] "<< data.c_str()));
             }
             popAndDoNextRequest(data);
 
         }, [pThis, callback, popAndDoNextRequest](const std::string &data) {
             if (pThis->m_logEnabled) {
-                s2s_log("[S2S Error %s] %s\n",
-                        pThis->m_appId.c_str(), data.c_str());
+                s2s_log(static_cast<std::stringstream&&>(std::stringstream{} <<"[S2S Error " <<
+                                                                                         pThis->m_appId.c_str() <<"] "<< data.c_str()));
             }
             popAndDoNextRequest(data);
         });
@@ -728,4 +727,28 @@ namespace BrainCloud {
         m_rttComms->runCallbacks();
     }
 
+
+    void s2s_log(const std::stringstream &message, bool file)
+    {
+        s2s_log(message.str());
+    }
+
+    void s2s_log(const std::string &message, bool file)
+    {
+        //m_logMutex.lock();
+        if (file) {
+            std::time_t t = std::time(nullptr);
+            std::tm tm = *std::localtime(&t);
+            std::stringstream ss;
+            ss<< std::put_time(&tm, "%F_%T");
+            static std::string filename = std::string("s2s_log_") + ss.str() + std::string(".txt");
+
+            std::ofstream rttlog;
+            rttlog.open(filename, std::ios::out | std::ios::app);
+            rttlog << message << std::endl << std::flush;
+            rttlog.close();
+        }
+        std::cout << message << std::endl << std::flush;
+        //m_logMutex.unlock();
+    }
 }

@@ -50,7 +50,7 @@ TEST_CASE("Valid Context", "[S2S]")
             \"service\": \"script\", \
             \"operation\": \"RUN\", \
             \"data\": { \
-                \"scriptName\": \"testScript2\" \
+                \"scriptName\": \"AddTwoNumbers\" \
             } \
         }";
 

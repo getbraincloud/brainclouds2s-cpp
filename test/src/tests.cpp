@@ -79,19 +79,7 @@ void loadIdsIfNot()
 
 bool runAuth(S2SContextRef pContext)
 {
-    bool processed = false;
-    std::string ret;
-
-    pContext->authenticate([&](const std::string& result)
-                           {
-                               ret = result;
-                               processed = true;
-                           });
-
-    while (!processed)
-    {
-        pContext->runCallbacks(100);
-    }
+    std::string ret = pContext->authenticateSync();
 
     Json::Value data;
     Json::Reader reader;

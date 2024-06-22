@@ -78,7 +78,7 @@ namespace BrainCloud
             RTTCallback(RTTCallbackType type, const Json::Value& json, const std::string& message);
         };
 
-        void processRTTMessage(const ServiceOperation& serviceOperation, const Json::Value& jsonData);
+        void processRttRegistration(const ServiceOperation& serviceOperation, const Json::Value& jsonData);
         Json::Value getEndpointToUse(const Json::Value& endpoints) const;
         static Json::Value getEndpointForType(const Json::Value& endpoints, const std::string& type, bool wantSsl);
 
@@ -98,6 +98,7 @@ namespace BrainCloud
         S2SContext* _context;
 
         bool _loggingEnabled;
+
         IRTTConnectCallback* _connectCallback;
 
         std::string _appId;

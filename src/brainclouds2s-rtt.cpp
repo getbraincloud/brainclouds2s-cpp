@@ -2,6 +2,8 @@
 #include "brainclouds2s.h"
 #include "RTTComms.h"
 
+#include <iostream>
+
 namespace BrainCloud {
     BrainCloudRTT::BrainCloudRTT(RTTComms *in_comms, S2SContext* c)
             : m_commsLayer(in_comms),
@@ -13,28 +15,24 @@ namespace BrainCloud {
         Json::Value nullMsg = Json::nullValue;
         bool processed = false;
         std::string ret;
-        //ServerCall* sc = new ServerCall(ServiceName::RTTRegistration, ServiceOperation::RequestClientConnection, nullMsg, in_callback);
-        //m_client->getBrainCloudComms()->addToQueue(sc);
 
-
-        // Build the authentication json
+        // Build the rtt registration json
         Json::Value json(Json::ValueType::objectValue);
-        //json["packetId"] = 0;
-        //Json::Value messages(Json::ValueType::arrayValue);
-        //Json::Value message(Json::ValueType::objectValue);
         json["service"] = "rttRegistration";
         json["operation"] = "REQUEST_SYSTEM_CONNECTION";
-        //json["data"] = nullMsg;
-        //messages.append(message);
-        //json["messages"] = messages;
 
         Json::StyledWriter writer;
         printf("%s",writer.write(json).c_str());
 
         Json::FastWriter fw;
+
+        s2s_log(static_cast<std::stringstream&&>(std::stringstream{} << " start request: "<<(in_callback == static_cast<IServerCallback*>(m_commsLayer))<<", "<<in_callback<<", "<<m_commsLayer));
+
         m_S2SContext->request(fw.write(json), [&](const std::string& result)
         {
+            s2s_log(static_cast<std::stringstream&&>(std::stringstream{} <<" inside callback: "<<(in_callback == static_cast<IServerCallback*>(m_commsLayer))<<", "<<in_callback<<", "<<m_commsLayer));
             m_commsLayer->serverCallback(ServiceName::RTTRegistration, ServiceOperation::RequestSystemConnection, result);
+            //in_callback->serverCallback(ServiceName::RTTRegistration, ServiceOperation::RequestSystemConnection, result);
             ret = result;
             processed = true;
         });
@@ -65,4 +63,5 @@ namespace BrainCloud {
     {
         return m_commsLayer->getConnectionId();
     }
+
 }

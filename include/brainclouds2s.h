@@ -24,6 +24,9 @@ namespace BrainCloud {
     using S2SCallback = std::function<void(const std::string &)>;
     using S2SContextRef = std::shared_ptr<S2SContext>;
 
+    void s2s_log(const std::stringstream &message, bool file = false);
+    void s2s_log(const std::string &message, bool file = false);
+
     class S2SContext {
     public:
         /*
