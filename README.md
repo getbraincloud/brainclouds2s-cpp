@@ -28,5 +28,9 @@ cd build
 cmake -DBUILD_TEST=ON -DCMAKE_BUILD_TYPE=Debug ..
 cmake --build . --target testbcs2s --config Debug -- -j 4
 # make sure to copy app/server info into test/ids.txt
-./testbcs2s"
+./testbcs2s
+```
+To filter test:
+```
+./testbcs2s [RTT]
 ```

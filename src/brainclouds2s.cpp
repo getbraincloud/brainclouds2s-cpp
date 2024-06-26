@@ -50,8 +50,6 @@ namespace BrainCloud {
 
         void enableRTT(IRTTConnectCallback* callback) override;
 
-        std::string enableRTTSync() override;
-
         void request(
                 const std::string &json,
                 const S2SCallback &callback) override;
@@ -104,7 +102,7 @@ namespace BrainCloud {
         bool m_autoAuth = false;
 
         enum State {
-            Disonnected = 0,
+            Disconnected = 0,
             Authenticating = 1,
             Authenticated = 2
         };
@@ -144,7 +142,7 @@ namespace BrainCloud {
                                              const std::string &serverSecret,
                                              const std::string &url,
                                              bool autoAuth)
-            : m_state(State::Disonnected), m_heartbeatInverval(HEARTBEAT_INTERVALE_MS), m_autoAuth(autoAuth),
+            : m_state(State::Disconnected), m_heartbeatInverval(HEARTBEAT_INTERVALE_MS), m_autoAuth(autoAuth),
               m_rttComms(new RTTComms(this))
 {
         m_appId = appId;
@@ -227,6 +225,8 @@ namespace BrainCloud {
                 json["message"] = "Malformed json";
                 callback(json);
             }
+
+            s2s_log(static_cast<std::stringstream&&>(std::stringstream{} << "Session ID:" << pThis->m_sessionId));
         });
     }
 
@@ -487,12 +487,13 @@ namespace BrainCloud {
             // Create a copy of our previous requests, we will callback
             // then all on failed auth. The reasons are:
             // 1. disconnect() clears the queue
-            // 2. A callback might create new requets and cause side
+            // 2. A callback might create new requests and cause side
             //    effects so it's better to be in a clean state.
             decltype(m_requestQueue) requestQueueCopy;
             {
-                std::unique_lock <std::mutex> lock(m_requestsMutex);
+                m_requestsMutex.lock();
                 requestQueueCopy = m_requestQueue;
+                m_requestsMutex.unlock();
             }
 
             // Disconnect (Clear internal queued requests)
@@ -518,7 +519,7 @@ namespace BrainCloud {
     }
 
     void S2SContext_internal::authenticate(const S2SCallback &callback) {
-        if (m_state != State::Disonnected) {
+        if (m_state != State::Disconnected) {
             callback("{\"status\":400,\"message\":\"Already authenticated or authenticating\"}");
             return;
         }
@@ -560,47 +561,11 @@ namespace BrainCloud {
         m_rttService->enableRTT(callback, true);
     }
 
-    std::string S2SContext_internal::enableRTTSync() {
-
-        // brainCloud RTT Connection callbacks
-        class RTTS2SConnectCallback final : public BrainCloud::IRTTConnectCallback
-        {
-        public:
-            std::string ret;
-            bool processed = false;
-            void rttConnectSuccess() override{
-                processed = true;
-            };
-
-            void rttConnectFailure(const std::string& errorMessage) override{
-                processed = true;
-                ret = errorMessage;
-            };
-        }bcRTTConnectCallback;
-
-        enableRTT(&bcRTTConnectCallback);
-
-        // Timeout after 60sec. This call shouldn't be that long
-        auto startTime = std::chrono::steady_clock::now();
-        while (!bcRTTConnectCallback.processed &&
-               std::chrono::steady_clock::now() <
-               startTime + std::chrono::seconds(60)) {
-            runCallbacks();
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
-
-        if (!bcRTTConnectCallback.processed) {
-            bcRTTConnectCallback.ret = "{\"status\":900,\"message\":\"RTT timeout\"}";
-        }
-
-        return std::move(bcRTTConnectCallback.ret);
-    }
-
     void S2SContext_internal::request(
             const std::string &json,
             const S2SCallback &callback) {
         // Authenticate if we are disconnected (Not auth-ed or auth-ing)
-        if (m_state == State::Disonnected && m_autoAuth) {
+        if (m_state == State::Disconnected && m_autoAuth) {
             auto pThis = shared_from_this();
             authenticateInternal([pThis, callback](const Json::Value &data) {
                 pThis->onAuthenticateResult(data, callback);
@@ -649,10 +614,11 @@ namespace BrainCloud {
     void S2SContext_internal::disconnect() {
         stopHeartbeat();
 
-        std::unique_lock <std::mutex> lock(m_requestsMutex);
+        m_requestsMutex.lock();
         m_requestQueue.clear();
+        m_requestsMutex.unlock();
 
-        m_state = State::Disonnected;
+        m_state = State::Disconnected;
         int m_packetId = 0; // Super important!
         std::string m_sessionId = "";
     }

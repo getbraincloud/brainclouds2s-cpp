@@ -76,18 +76,9 @@ namespace BrainCloud {
         virtual std::string authenticateSync() = 0;
 
         /*
-         * Authenticate with brainCloud. If autoAuth is set to false, which is
-         * the default, this must be called successfully before doing other
-         * requests. See S2SContext::create
-         * @param callback Callback function
+         * enable rtt
          */
         virtual void enableRTT(IRTTConnectCallback* callback) = 0;
-
-        /*
-         * Same as authenticate, but waits for result. This call is blocking.
-         * @return Authenticate result
-         */
-        virtual std::string enableRTTSync() = 0;
 
         /*
          * Send an S2S request.

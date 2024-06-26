@@ -11,7 +11,7 @@
 #include <thread>
 #include <sstream>
 
-#define RTTCOMMS_LOG_EVERY_METHODS 1
+#define RTTCOMMS_LOG_EVERY_METHODS 0
 
 namespace BrainCloud
 {
@@ -209,7 +209,7 @@ namespace BrainCloud
 #if RTTCOMMS_LOG_EVERY_METHODS
         // removing this from logging every method BECAUSE it prints out too often and wipes out other useful logs
         // keeping in code though since we may want to print this sometimes
-        // std::cout << "VERBOSE: RTTComms::runCallbacks");
+        //s2s_log("VERBOSE: RTTComms::runCallbacks");
 #endif
         _eventQueueMutex.lock();
         auto eventsCopy = _callbackEventQueue;
@@ -398,8 +398,7 @@ namespace BrainCloud
         _rttConnectionStatus = BrainCloudRTT::RTTConnectionStatus::Connecting;
 #if (!defined(TARGET_OS_WATCH) || TARGET_OS_WATCH == 0)
         _disconnectedWithReason = false;
-//        std::cout<<"in thread "<<std::endl<<std::flush;
-     //   s2s_log("here in thread JOANNE");
+
         std::thread connectionThread([this]
         {
             std::string host = _endpoint["host"].asString();

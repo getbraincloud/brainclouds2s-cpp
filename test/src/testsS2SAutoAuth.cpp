@@ -7,7 +7,7 @@
 // We start with all tests, but using Auto-Auth.
 ///////////////////////////////////////////////////////////////////////////////
 
-TEST_CASE("Create context - Auto auth", "[S2S]")
+TEST_CASE("Create context - Auto auth", "[S2SAA]")
 {
     loadIdsIfNot();
     auto pContext = S2SContext::create(
@@ -33,7 +33,7 @@ TEST_CASE("Create context - Auto auth", "[S2S]")
     pAnotherContext = nullptr;
 }
 
-TEST_CASE("Valid Context - Auto auth", "[S2S]")
+TEST_CASE("Valid Context - Auto auth", "[S2SAA]")
 {
     loadIdsIfNot();
     auto pContext = S2SContext::create(
@@ -51,7 +51,7 @@ TEST_CASE("Valid Context - Auto auth", "[S2S]")
             \"service\": \"script\", \
             \"operation\": \"RUN\", \
             \"data\": { \
-                \"scriptName\": \"testScript2\" \
+                \"scriptName\": \"AddTwoNumbers\" \
             } \
         }";
 
@@ -122,7 +122,7 @@ TEST_CASE("Valid Context - Auto auth", "[S2S]")
     }
 }
 
-TEST_CASE("Context with bad Server Secret - Auto auth", "[S2S]")
+TEST_CASE("Context with bad Server Secret - Auto auth", "[S2SAA]")
 {
     loadIdsIfNot();
     auto pContext = S2SContext::create(
@@ -194,7 +194,7 @@ TEST_CASE("Context with bad Server Secret - Auto auth", "[S2S]")
     }
 }
 
-TEST_CASE("RunCallbacks with timeout - Auto auth", "[S2S]")
+TEST_CASE("RunCallbacks with timeout - Auto auth", "[S2SAA]")
 {
     loadIdsIfNot();
     auto pContext = S2SContext::create(
@@ -236,7 +236,7 @@ TEST_CASE("RunCallbacks with timeout - Auto auth", "[S2S]")
     REQUIRE(status_code == 200);
 }
 
-TEST_CASE("RunCallbacks with nullptr callback - Auto auth", "[S2S]")
+TEST_CASE("RunCallbacks with nullptr callback - Auto auth", "[S2SAA]")
 {
     loadIdsIfNot();
     auto pContext = S2SContext::create(
@@ -269,7 +269,7 @@ TEST_CASE("RunCallbacks with nullptr callback - Auto auth", "[S2S]")
     REQUIRE(processed);
 }
 
-TEST_CASE("requestSync - Auto auth", "[S2S]")
+TEST_CASE("requestSync - Auto auth", "[S2SAA]")
 {
     loadIdsIfNot();
     auto pContext = S2SContext::create(
@@ -302,7 +302,7 @@ TEST_CASE("requestSync - Auto auth", "[S2S]")
     CHECK(status == 200);
 }
 
-TEST_CASE("Bad Requests - Auto auth", "[S2S]")
+TEST_CASE("Bad Requests - Auto auth", "[S2SAA]")
 {
     loadIdsIfNot();
     auto pContext = S2SContext::create(
