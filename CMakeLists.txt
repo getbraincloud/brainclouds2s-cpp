@@ -151,6 +151,8 @@ if (USE_LIBWEBSOCKETS)
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         target_compile_options(websockets PRIVATE -Wno-typedef-redefinition)
     endif()
+	
+	target_compile_features(mbedtls PUBLIC c_std_99)
 
     # append the libwesockets to list of libs
     list(APPEND libs websockets)
