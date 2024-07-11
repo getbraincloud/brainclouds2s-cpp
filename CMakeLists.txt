@@ -1,5 +1,5 @@
 # This will build only on linux systems
-cmake_minimum_required(VERSION 3.2.0)
+cmake_minimum_required(VERSION 3.1.0)
 
 option(BUILD_TEST "Build the test" OFF)
 
@@ -152,7 +152,7 @@ if (USE_LIBWEBSOCKETS)
         target_compile_options(websockets PRIVATE -Wno-typedef-redefinition)
     endif()
 	
-	target_compile_features(mbedtls PUBLIC c_std_99)
+	target_compile_features(mbedtls PRIVATE cxx_std_99)
 
     # append the libwesockets to list of libs
     list(APPEND libs websockets)
