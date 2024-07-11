@@ -11,4 +11,4 @@ add_executable(testbcs2s ${src_files} src/tests.h)
 
 target_link_libraries(testbcs2s brainclouds2s)
 
-set_property(TARGET testbcs2s PROPERTY C_STANDARD 99)
+target_compile_features(testbcs2s PUBLIC c_std_99)
