@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.2.0)
 
 project(testbcs2s)
 
@@ -10,3 +10,5 @@ file(GLOB src_files ./src/*.*)
 add_executable(testbcs2s ${src_files} src/tests.h)
 
 target_link_libraries(testbcs2s brainclouds2s)
+
+set_property(TARGET testbcs2s PROPERTY C_STANDARD 99)

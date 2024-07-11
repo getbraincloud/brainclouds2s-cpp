@@ -9,7 +9,7 @@ project(brainclouds2s)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 # We want to use C++11 flag on the compiler for std::thread
-set(CMAKE_CXX_STANDARD 99)
+set(CMAKE_CXX_STANDARD 11)
 
 # TODO: USE_LIBWEBSOCKETS to include or not include some src files in the build
 # Application source files
