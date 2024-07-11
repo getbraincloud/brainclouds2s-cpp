@@ -1,5 +1,5 @@
 # This will build only on linux systems
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.2.0)
 
 option(BUILD_TEST "Build the test" OFF)
 
@@ -9,7 +9,7 @@ project(brainclouds2s)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 # We want to use C++11 flag on the compiler for std::thread
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 99)
 
 # TODO: USE_LIBWEBSOCKETS to include or not include some src files in the build
 # Application source files
