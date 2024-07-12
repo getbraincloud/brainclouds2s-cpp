@@ -1,5 +1,5 @@
 # This will build only on linux systems
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.18.0)
 
 option(BUILD_TEST "Build the test" OFF)
 
