@@ -152,7 +152,6 @@ if (USE_LIBWEBSOCKETS)
         target_compile_options(websockets PRIVATE -Wno-typedef-redefinition)
     endif()
 	
-	target_compile_features(mbedtls PRIVATE cxx_std_99)
 
     # append the libwesockets to list of libs
     list(APPEND libs websockets)
