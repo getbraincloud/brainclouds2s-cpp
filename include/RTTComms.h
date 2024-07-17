@@ -9,6 +9,8 @@
 #include "ServiceName.h"
 #include "ServiceOperation.h"
 #include "brainclouds2s-rtt.h"
+#include "IWebSocket.h"
+#include "ITCPSocket.h"
 
 #include "json/json.h"
 
@@ -18,6 +20,8 @@
 #include <string>
 #include <vector>
 #include <condition_variable>
+
+
 
 namespace BrainCloud
 {

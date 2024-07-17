@@ -1,0 +1,11 @@
+{
+  "dependencies": [
+    {
+      "name": "curl",
+      "features": [
+        "mbedtls"
+      ]
+    },
+    "pthreads"
+  ]
+}

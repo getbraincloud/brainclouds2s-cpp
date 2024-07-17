@@ -2,8 +2,6 @@
 #include "brainclouds2s.h"
 #include "IRTTCallback.h"
 #include "IRTTConnectCallback.h"
-#include "IWebSocket.h"
-#include "ITCPSocket.h"
 #include "TimeUtil.h"
 
 #include <fstream>
@@ -449,7 +447,9 @@ namespace BrainCloud
                     }
                     else
                     {
+                        #ifdef USE_TCP
                         _socket = ITCPSocket::create(host, port);
+                        #endif
                     }
                 }
                 if (!_socket || !_socket->isValid())

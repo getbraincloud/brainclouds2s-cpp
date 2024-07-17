@@ -4,8 +4,9 @@
 #include <curl/curl.h>
 #include <json/json.h>
 
-#include <atomic>
+
 #include <chrono>
+#include <limits>
 #include <condition_variable>
 #include <mutex>
 #include <queue>
@@ -13,6 +14,8 @@
 #include <thread>
 #include <sstream>
 #include <iomanip>
+#include "stdlib.h"
+
 
 using AuthenticateCallback = std::function<void(const Json::Value&)>;
 
@@ -674,11 +677,10 @@ namespace BrainCloud {
 
             // Just wait for the specified timeout
             if (timeoutMS > 0) {
-                auto waitTime = std::min(
-                        std::chrono::milliseconds(timeoutMS),
-                        std::chrono::milliseconds(m_heartbeatInverval) -
-                        std::chrono::duration_cast<std::chrono::milliseconds>(timeDiff)
-                );
+                auto hbIntervalDuration = std::chrono::milliseconds(m_heartbeatInverval) -
+                    std::chrono::duration_cast<std::chrono::milliseconds>(timeDiff);
+                auto timeoutDuration = std::chrono::milliseconds(timeoutMS);
+                auto waitTime = timeoutDuration < hbIntervalDuration ? timeoutDuration : hbIntervalDuration;
                 std::unique_lock <std::mutex> lock(m_callbacksMutex);
                 m_callbacksCond.wait_for(lock, waitTime);
             }
