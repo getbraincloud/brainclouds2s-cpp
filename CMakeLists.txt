@@ -199,6 +199,5 @@ target_compile_options(brainCloudS2S PRIVATE
 #=============================================================================
 if (DEFINED(${BUILD_TESTS}) OR ${BUILD_TESTS})
     message("brainCloudS2S Building with BUILD_TESTS ON")
-	enable_testing()
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/tests")
 endif()

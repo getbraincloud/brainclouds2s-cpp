@@ -27,5 +27,3 @@ add_executable(testbcs2s ${BC_INCS} ${INCS} ${SOURCES})
 # Link against brainCloudS2S and its dependencies
 target_link_libraries(testbcs2s PUBLIC brainCloudS2S CURL::libcurl PThreads4W::PThreads4W mbedtls mbedx509 mbedcrypto)
 
-add_test(NAME testbcs2s COMMAND src/tests.cpp)
-
