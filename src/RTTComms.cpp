@@ -155,8 +155,8 @@ namespace BrainCloud
             _appId = _context->getAppId();
             _sessionId = _context->getSessionId();
 
-            //s2s_log("request from %p", this);
-            s2s_log(static_cast<std::stringstream&&>(std::stringstream{} <<" JO JO JO JO request from "<<this<<std::endl<<std::flush));
+            s2s_log("request from %s", this);
+            //s2s_log(static_cast<std::stringstream&&>(std::stringstream{} <<" JO JO JO JO request from "<<this<<std::endl<<std::flush));
             //auto pThis = std::unique_ptr<IServerCallback>((this));
             _context->getRTTService()->requestS2SConnection(this);
         }

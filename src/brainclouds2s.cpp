@@ -343,6 +343,10 @@ namespace BrainCloud {
         auto pThis = shared_from_this();
 
         auto popAndDoNextRequest = [pThis, callback](const std::string &data) {
+            if (!pThis) {
+                std::cerr << "pThis is null" << std::endl;
+                return;
+            }
             pThis->popRequest();
             if (callback) {
                 callback(data);
@@ -350,17 +354,15 @@ namespace BrainCloud {
             pThis->doNextRequest();
         };
 
-        curlSend(postData, [pThis, callback, popAndDoNextRequest](const std::string &data) {
+        curlSend(postData, [pThis, popAndDoNextRequest](const std::string &data) {
             if (pThis->m_logEnabled) {
-                s2s_log(static_cast<std::stringstream&&>(std::stringstream{} << "[S2S RECV " <<
-                                                                     pThis->m_appId.c_str() <<"] "<< data.c_str()));
+                s2s_log(static_cast<std::stringstream&&>(std::stringstream{} << "[S2S RECV " << pThis->m_appId << "] " << data));
             }
             popAndDoNextRequest(data);
 
-        }, [pThis, callback, popAndDoNextRequest](const std::string &data) {
+        }, [pThis, popAndDoNextRequest](const std::string &data) {
             if (pThis->m_logEnabled) {
-                s2s_log(static_cast<std::stringstream&&>(std::stringstream{} <<"[S2S Error " <<
-                                                                                         pThis->m_appId.c_str() <<"] "<< data.c_str()));
+                s2s_log(static_cast<std::stringstream&&>(std::stringstream{} << "[S2S Error " << pThis->m_appId << "] " << data));
             }
             popAndDoNextRequest(data);
         });
