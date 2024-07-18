@@ -28,11 +28,11 @@ export VCPKG=/path/to/vcpkg
 By default, this project uses Visual Studio to generate the project solution. You may choose other generators such as Ninja for faster builds by changing the generator value in the appropriate preset that you are using in the `CMakePresets.json` file.
 Example:
 ```bash 
-	"generator": "Visual Studio 17 2022"
+"generator": "Visual Studio 17 2022"
 ```
 to 
 ```bash 
-	"generator": "Ninja"
+"generator": "Ninja"
 ```
 You could also change this to another version of Visual Studio if needed.
 
