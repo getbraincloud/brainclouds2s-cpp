@@ -125,8 +125,6 @@ if (USE_LIBWEBSOCKETS)
 	endif()
 
     # LibWebSockets
-	
-
     option(LWS_WITHOUT_SERVER
             "Don't build the server part of the library" ON)
     option(LWS_WITHOUT_TESTAPPS
@@ -191,6 +189,11 @@ target_link_libraries(brainCloudS2S PUBLIC ${libs} CURL::libcurl)
 if (WIN32)
     find_package(PThreads4W CONFIG REQUIRED)
     target_link_libraries(brainCloudS2S PRIVATE PThreads4W::PThreads4W)
+	
+	# Compile flags
+	target_compile_options(brainCloudS2S PRIVATE
+            /MP     # Multi-core compilation
+            )
 elseif(UNIX)
     find_package(Threads REQUIRED)
     target_link_libraries(brainCloudS2S PRIVATE Threads::Threads)
@@ -198,10 +201,7 @@ endif()
 
 target_link_libraries(brainCloudS2S PRIVATE websockets_shared)
 
-# Compile flags
-target_compile_options(brainCloudS2S PRIVATE
-            /MP     # Multi-core compilation
-            )
+
 
 #=============================================================================
 # Unit Tests
