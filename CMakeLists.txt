@@ -81,7 +81,6 @@ list(APPEND includes PUBLIC "lib/jsoncpp-1.0.0")
 # Libraries
 #=============================================================================
 find_package(CURL CONFIG REQUIRED)
-find_package(PThreads4W CONFIG REQUIRED)
 find_package(libwebsockets CONFIG REQUIRED)
 
 # android uses openssl instead of tls (pre-built libwebsockets.a is linked above)
@@ -186,7 +185,17 @@ add_library(brainCloudS2S STATIC
 # Setup includes and links libraries
 target_include_directories(brainCloudS2S PUBLIC "./include" ${includes})
 target_include_directories(brainCloudS2S PRIVATE "./src")
-target_link_libraries(brainCloudS2S PUBLIC ${libs} CURL::libcurl PThreads4W::PThreads4W)
+target_link_libraries(brainCloudS2S PUBLIC ${libs} CURL::libcurl)
+
+# Find pthreads based on the platform
+if (WIN32)
+    find_package(PThreads4W CONFIG REQUIRED)
+    target_link_libraries(brainCloudS2S PRIVATE PThreads4W::PThreads4W)
+elseif(UNIX)
+    find_package(Threads REQUIRED)
+    target_link_libraries(brainCloudS2S PRIVATE Threads::Threads)
+endif()
+
 target_link_libraries(brainCloudS2S PRIVATE websockets_shared)
 
 # Compile flags
