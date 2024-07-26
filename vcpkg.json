@@ -1,7 +1,8 @@
 {
   "dependencies": [
     "curl",
+    "libwebsockets",
     "pthreads",
-    "libwebsockets"
+    "uv"
   ]
 }
