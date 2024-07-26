@@ -7,7 +7,7 @@ Requirements:
 - git or downloaded zip archive of brainCloudS2S library 
 - Visual Studio 17 2022
 - CMake https://cmake.org/
-- vcpkg https://vcpkg.io/en/
+- vcpkg https://vcpkg.io/en/ - To get started with vcpkg and CMake check out [this page](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started?pivots=shell-cmd)
 
 ### Important note: 
 Once you have installed vcpkg, make sure you have an environment variable with the name of `VCPKG` set to the root path of your vcpkg installation. Without this CMake will not find the correct toolchain file.
@@ -51,7 +51,7 @@ Steps (Command lines are done in Powershell or Windows command prompt):
 	```
 3.	Generate the solution using cmake and the appropriate preset, for windows we will use the `windows-default` preset. If you want to include the unit tests in the build, add the `-DBUILD_TESTS=ON` flag like so
 	```bash
-	1cmake --preset=windows-default . -DBUILD_TESTS=ON
+	cmake --preset=windows-default . -DBUILD_TESTS=ON
 	```
 4.	Once the solution is generated, cd into the build folder and build the library with cmake. Or you can build it by opening the generated solution in Visual Studio and directly building it from there. 
 	```bash
