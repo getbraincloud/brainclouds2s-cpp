@@ -196,14 +196,8 @@ if (WIN32)
             /MP     # Multi-core compilation
             )
 elseif(UNIX)
-	# Compile flags
-	set(VCPKG_CXX_FLAGS_RELEASE -luv -ldl -lrt -pthread)
-	set(VCPKG_C_FLAGS_RELEASE -luv -ldl -lrt -pthread)
-	set(VCPKG_LINKER_FLAGS_RELEASE -luv -ldl -lrt -pthread)
-	#target_compile_options(brainCloudS2S PRIVATE -luv -ldl -lrt -pthread)
-
     find_package(Threads REQUIRED)
-    target_link_libraries(brainCloudS2S PRIVATE Threads::Threads)
+    target_link_libraries(brainCloudS2S PRIVATE Threads::Threads dl rt uv)
 	
 	find_package(libwebsockets CONFIG REQUIRED)
 	target_link_libraries(brainCloudS2S PRIVATE websockets)
