@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD 11)
 
 # Find required packages (CURL and PThreads4W)
 find_package(CURL CONFIG REQUIRED)
-find_package(PThreads4W CONFIG REQUIRED)
 
 include_directories("${BC_DIR}/lib/jsoncpp-1.0.0")
 include_directories("src")
@@ -25,5 +24,12 @@ add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 add_executable(testbcs2s ${BC_INCS} ${INCS} ${SOURCES})
 
 # Link against brainCloudS2S and its dependencies
-target_link_libraries(testbcs2s PUBLIC brainCloudS2S CURL::libcurl PThreads4W::PThreads4W mbedtls mbedx509 mbedcrypto)
+target_link_libraries(testbcs2s PRIVATE brainCloudS2S CURL::libcurl mbedtls mbedx509 mbedcrypto)
+if (WIN32)
+    find_package(PThreads4W CONFIG REQUIRED)
+    target_link_libraries(testbcs2s PRIVATE PThreads4W::PThreads4W)
+elseif(UNIX)
+    find_package(Threads REQUIRED)
+    target_link_libraries(testbcs2s PRIVATE Threads::Threads)
+endif()
 
