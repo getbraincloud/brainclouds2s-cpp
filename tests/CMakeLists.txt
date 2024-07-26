@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.30)
 project(testbcs2s)
 
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_C_STANDARD 99)
 
 # Find required packages (CURL and PThreads4W)
 find_package(CURL CONFIG REQUIRED)
