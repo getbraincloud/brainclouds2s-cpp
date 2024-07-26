@@ -198,7 +198,7 @@ if (WIN32)
 elseif(UNIX)
     find_package(Threads REQUIRED)
 	find_package(libuv CONFIG REQUIRED)
-    target_link_libraries(brainCloudS2S PRIVATE Threads::Threads dl rt uv)
+    target_link_libraries(brainCloudS2S PRIVATE Threads::Threads dl rt $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>)
 	
 	find_package(libwebsockets CONFIG REQUIRED)
 	target_link_libraries(brainCloudS2S PRIVATE websockets)
