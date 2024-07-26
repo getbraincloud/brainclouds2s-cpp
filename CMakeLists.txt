@@ -189,6 +189,7 @@ target_link_libraries(brainCloudS2S PUBLIC ${libs} CURL::libcurl)
 if (WIN32)
     find_package(PThreads4W CONFIG REQUIRED)
     target_link_libraries(brainCloudS2S PRIVATE PThreads4W::PThreads4W)
+
 	
 	# Compile flags
 	target_compile_options(brainCloudS2S PRIVATE
@@ -199,8 +200,17 @@ elseif(UNIX)
     target_link_libraries(brainCloudS2S PRIVATE Threads::Threads)
 endif()
 
-target_link_libraries(brainCloudS2S PRIVATE websockets_shared)
+# Find libwebsockets
+find_package(websockets CONFIG REQUIRED)
+if(TARGET websockets_shared)
+    target_link_libraries(brainCloudS2S PRIVATE websockets_shared)
+elseif(TARGET websockets::websockets)
+    target_link_libraries(brainCloudS2S PRIVATE websockets::websockets)
+else()
+    message(FATAL_ERROR "Could not find websockets library")
+endif()
 
+#	target_link_libraries(brainCloudS2S PRIVATE websockets_shared)
 
 
 #=============================================================================
