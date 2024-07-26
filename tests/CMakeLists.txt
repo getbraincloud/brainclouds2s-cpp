@@ -30,9 +30,9 @@ if (WIN32)
     find_package(PThreads4W CONFIG REQUIRED)
     target_link_libraries(testbcs2s PRIVATE PThreads4W::PThreads4W)
 elseif(UNIX)
+	# Compile flags
+	target_compile_options(brainCloudS2S PRIVATE -luv -ldl -lrt -pthread)
     find_package(Threads REQUIRED)
     target_link_libraries(testbcs2s PRIVATE Threads::Threads)
-	# Compile flags
-	target_compile_options(brainCloudS2S PRIVATE -pthread)
 endif()
 

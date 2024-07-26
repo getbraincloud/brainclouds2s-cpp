@@ -196,14 +196,14 @@ if (WIN32)
             /MP     # Multi-core compilation
             )
 elseif(UNIX)
+	# Compile flags
+	target_compile_options(brainCloudS2S PRIVATE -luv -ldl -lrt -pthread)
+
     find_package(Threads REQUIRED)
     target_link_libraries(brainCloudS2S PRIVATE Threads::Threads)
 	
 	find_package(libwebsockets CONFIG REQUIRED)
 	target_link_libraries(brainCloudS2S PRIVATE websockets)
-	
-	# Compile flags
-	target_compile_options(brainCloudS2S PRIVATE -pthread)
 endif()
 
 
