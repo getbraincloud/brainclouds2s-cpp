@@ -197,7 +197,10 @@ if (WIN32)
             )
 elseif(UNIX)
 	# Compile flags
-	target_compile_options(brainCloudS2S PRIVATE -luv -ldl -lrt -pthread)
+	set(VCPKG_CXX_FLAGS_RELEASE -luv -ldl -lrt -pthread)
+	set(VCPKG_C_FLAGS_RELEASE -luv -ldl -lrt -pthread)
+	set(VCPKG_LINKER_FLAGS_RELEASE -luv -ldl -lrt -pthread)
+	#target_compile_options(brainCloudS2S PRIVATE -luv -ldl -lrt -pthread)
 
     find_package(Threads REQUIRED)
     target_link_libraries(brainCloudS2S PRIVATE Threads::Threads)
