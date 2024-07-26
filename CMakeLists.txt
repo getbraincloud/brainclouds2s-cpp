@@ -203,9 +203,7 @@ elseif(UNIX)
 	target_link_libraries(brainCloudS2S PRIVATE websockets)
 	
 	# Compile flags
-	target_compile_options(brainCloudS2S PRIVATE
-			/pthread
-            )
+	target_compile_options(brainCloudS2S PRIVATE -pthread)
 endif()
 
 

@@ -33,8 +33,6 @@ elseif(UNIX)
     find_package(Threads REQUIRED)
     target_link_libraries(testbcs2s PRIVATE Threads::Threads)
 	# Compile flags
-	target_compile_options(testbcs2s PRIVATE
-			/pthread
-            )
+	target_compile_options(brainCloudS2S PRIVATE -pthread)
 endif()
 
