@@ -5,7 +5,7 @@ project(testbcs2s)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_C_STANDARD 99)
 
-# Find required packages (CURL and PThreads4W)
+# Find required packages
 find_package(CURL CONFIG REQUIRED)
 
 include_directories("${BC_DIR}/lib/jsoncpp-1.0.0")
@@ -32,5 +32,9 @@ if (WIN32)
 elseif(UNIX)
     find_package(Threads REQUIRED)
     target_link_libraries(testbcs2s PRIVATE Threads::Threads)
+	# Compile flags
+	target_compile_options(testbcs2s PRIVATE
+			/pthread
+            )
 endif()
 

@@ -201,6 +201,11 @@ elseif(UNIX)
 	
 	find_package(libwebsockets CONFIG REQUIRED)
 	target_link_libraries(brainCloudS2S PRIVATE websockets)
+	
+	# Compile flags
+	target_compile_options(brainCloudS2S PRIVATE
+			/pthread
+            )
 endif()
 
 
