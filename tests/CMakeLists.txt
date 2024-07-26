@@ -34,6 +34,6 @@ elseif(UNIX)
 	#target_compile_options(testbcs2s PRIVATE -luv -ldl -lrt -lpthread)
     find_package(Threads REQUIRED)
 	find_package(libuv CONFIG REQUIRED)
-    target_link_libraries(testbcs2s PRIVATE Threads::Threads dl rt $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>)
+    target_link_libraries(testbcs2s PRIVATE Threads::Threads dl rt uv)
 endif()
 
