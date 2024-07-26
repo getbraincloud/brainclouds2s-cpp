@@ -31,6 +31,7 @@ if (WIN32)
     target_link_libraries(testbcs2s PRIVATE PThreads4W::PThreads4W)
 elseif(UNIX)
 	# Compile flags
+	target_compile_options(testbcs2s PRIVATE -luv -ldl -lrt -lpthread)
     find_package(Threads REQUIRED)
     target_link_libraries(testbcs2s PRIVATE Threads::Threads dl rt uv)
 endif()
