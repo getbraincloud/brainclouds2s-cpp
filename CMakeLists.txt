@@ -200,7 +200,7 @@ elseif(UNIX)
     target_link_libraries(brainCloudS2S PRIVATE Threads::Threads)
 	
 	find_package(libwebsockets CONFIG REQUIRED)
-	target_link_libraries(brainCloudS2S PRIVATE websockets::websockets)
+	target_link_libraries(brainCloudS2S PRIVATE websockets)
 endif()
 
 
