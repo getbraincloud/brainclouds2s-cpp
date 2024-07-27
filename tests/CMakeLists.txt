@@ -34,6 +34,6 @@ elseif(UNIX)
 	# Compile flags
 	#target_compile_options(testbcs2s PRIVATE -luv -ldl -lrt -lpthread)
     find_package(Threads REQUIRED)
-    target_link_libraries(brainCloudS2S PUBLIC libuv::uv dl rt ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(testbcs2s PRIVATE uv dl rt Threads::Threads)
 endif()
 
