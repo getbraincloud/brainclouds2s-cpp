@@ -200,7 +200,7 @@ elseif(UNIX)
 	target_link_libraries(brainCloudS2S PRIVATE websockets)
 	
 	find_package(Threads REQUIRED)
-    target_link_libraries(brainCloudS2S PUBLIC uv dl rt ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(brainCloudS2S PUBLIC libuv::uv dl rt ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 
