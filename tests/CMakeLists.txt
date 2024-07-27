@@ -33,6 +33,6 @@ elseif(UNIX)
 	# Compile flags
 	#target_compile_options(testbcs2s PRIVATE -luv -ldl -lrt -lpthread)
     find_package(Threads REQUIRED)
-    target_link_libraries(testbcs2s PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(brainCloudS2S PUBLIC uv dl rt ${CMAKE_THREAD_LIBS_INIT})
 endif()
 

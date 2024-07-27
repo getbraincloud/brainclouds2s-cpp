@@ -196,11 +196,11 @@ if (WIN32)
             /MP     # Multi-core compilation
             )
 elseif(UNIX)
-    find_package(Threads REQUIRED)
-    target_link_libraries(brainCloudS2S PUBLIC ${CMAKE_THREAD_LIBS_INIT})
-	
 	find_package(libwebsockets CONFIG REQUIRED)
 	target_link_libraries(brainCloudS2S PRIVATE websockets)
+	
+	find_package(Threads REQUIRED)
+    target_link_libraries(brainCloudS2S PUBLIC uv dl rt ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 
