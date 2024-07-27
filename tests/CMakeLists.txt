@@ -7,7 +7,6 @@ set(CMAKE_C_STANDARD 99)
 
 # Find required packages
 find_package(CURL CONFIG REQUIRED)
-find_package(libuv CONFIG REQUIRED)
 
 include_directories("${BC_DIR}/lib/jsoncpp-1.0.0")
 include_directories("src")
@@ -34,7 +33,6 @@ elseif(UNIX)
 	# Compile flags
 	#target_compile_options(testbcs2s PRIVATE -luv -ldl -lrt -lpthread)
     find_package(Threads REQUIRED)
-	find_package(libuv CONFIG REQUIRED)
-    target_link_libraries(testbcs2s PRIVATE Threads::Threads dl rt $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>)
+    target_link_libraries(testbcs2s PRIVATE Threads::Threads)
 endif()
 
