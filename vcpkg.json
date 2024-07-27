@@ -3,6 +3,6 @@
     "curl",
     "libwebsockets",
     "pthreads",
-    "uv"
+    "libuv"
   ]
 }
