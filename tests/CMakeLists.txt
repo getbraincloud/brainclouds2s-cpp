@@ -33,7 +33,10 @@ if (WIN32)
 elseif(UNIX)
 	# Compile flags
 	#target_compile_options(testbcs2s PRIVATE -luv -ldl -lrt -lpthread)
-    find_package(Threads REQUIRED)
-    target_link_libraries(testbcs2s PRIVATE uv dl rt Threads::Threads)
+	find_package(libuv CONFIG REQUIRED)
+	target_link_libraries(testbcs2s PRIVATE $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>)
+	
+	find_package(Threads REQUIRED)
+    target_link_libraries(testbcs2s PRIVATE Threads::Threads)
 endif()
 

@@ -82,7 +82,6 @@ list(APPEND includes PUBLIC "lib/jsoncpp-1.0.0")
 #=============================================================================
 find_package(CURL CONFIG REQUIRED)
 find_package(libwebsockets CONFIG REQUIRED)
-find_package(libuv CONFIG REQUIRED)
 # android uses openssl instead of tls (pre-built libwebsockets.a is linked above)
 if (USE_LIBWEBSOCKETS)
     # TLS
@@ -200,7 +199,7 @@ elseif(UNIX)
 	target_link_libraries(brainCloudS2S PRIVATE websockets)
 	
 	find_package(Threads REQUIRED)
-    target_link_libraries(brainCloudS2S PUBLIC uv dl rt ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(brainCloudS2S PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 
