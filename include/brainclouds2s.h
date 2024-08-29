@@ -9,16 +9,23 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include "brainclouds2s-rtt.h"
+#include <IRTTConnectCallback.h>
 
 namespace BrainCloud {
-
     static const std::string DEFAULT_S2S_URL =
             "https://api.braincloudservers.com/s2sdispatcher";
 
-    class S2SContext;
+    static const std::string s_brainCloudS2SVersion = "5.3.0";
 
+    class S2SContext;
+    class BrainCloudRTT;
+    class IRTTConnectCallback;
     using S2SCallback = std::function<void(const std::string &)>;
     using S2SContextRef = std::shared_ptr<S2SContext>;
+
+    void s2s_log(const std::stringstream &message, bool file = false);
+    void s2s_log(const std::string &message, bool file = false);
 
     class S2SContext {
     public:
@@ -49,13 +56,13 @@ namespace BrainCloud {
         virtual ~S2SContext() {}
 
         /*
-         * Set wether S2S messages and errors are logged to the console
+         * Set whether S2S messages and errors are logged to the console
          * @param enabled Will log if true. Default false
          */
         virtual void setLogEnabled(bool enabled) = 0;
 
         /*
-         * Authenticate with brainCloud. If autoAuth is set to falsed, which is
+         * Authenticate with brainCloud. If autoAuth is set to false, which is
          * the default, this must be called successfully before doing other
          * requests. See S2SContext::create
          * @param callback Callback function
@@ -67,6 +74,11 @@ namespace BrainCloud {
          * @return Authenticate result
          */
         virtual std::string authenticateSync() = 0;
+
+        /*
+         * enable rtt
+         */
+        virtual void enableRTT(IRTTConnectCallback* callback) = 0;
 
         /*
          * Send an S2S request.
@@ -91,8 +103,24 @@ namespace BrainCloud {
          */
         virtual void runCallbacks(uint64_t timeoutMS = 0) = 0;
 
+        virtual BrainCloudRTT* getRTTService() {return nullptr;}
+
+        const std::string& getAppId() const {return m_appId;}
+        const std::string& getServerName() const {return m_serverName;}
+        const std::string& getServerSecret() const {return m_serverSecret;}
+        const std::string& getServerUrl() const {return m_url;}
+        const std::string& getSessionId() const {return m_sessionId;}
+
+        const std::string& getS2SVersion() const {return s_brainCloudS2SVersion;}
+
     protected:
         S2SContext() {}
+
+        std::string m_appId = "";
+        std::string m_serverName = "";
+        std::string m_serverSecret = "";
+        std::string m_url = "";
+        std::string m_sessionId = "";
     };
 }
 #endif /* BRAINCLOUDS2S_H_INCLUDED */

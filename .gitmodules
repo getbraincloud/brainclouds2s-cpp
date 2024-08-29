@@ -1,0 +1,7 @@
+[submodule "lib/mbedtls"]
+	path = lib/mbedtls
+	url = https://github.com/ARMmbed/mbedtls.git
+	branch = mbedtls-2.28
+[submodule "lib/jsoncpp-1.0.0"]
+	path = lib/jsoncpp-1.0.0
+	url = https://github.com/getbraincloud/braincloud-jsoncpp.git
