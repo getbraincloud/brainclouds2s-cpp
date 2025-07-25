@@ -182,7 +182,7 @@ add_library(brainCloudS2S STATIC
 # Setup includes and links libraries
 target_include_directories(brainCloudS2S PUBLIC "./include" ${includes})
 target_include_directories(brainCloudS2S PRIVATE "./src")
-target_link_libraries(brainCloudS2S PUBLIC ${libs} CURL::CURL)
+target_link_libraries(brainCloudS2S PUBLIC ${libs} CURL::libcurl)
 
 # Find pthreads based on the platform
 if (WIN32)
