@@ -81,7 +81,7 @@ list(APPEND includes PUBLIC "lib/jsoncpp-1.0.0")
 # Libraries
 #=============================================================================
 find_package(CURL REQUIRED)
-find_package(libwebsockets CONFIG REQUIRED)
+find_package(libwebsockets REQUIRED)
 # android uses openssl instead of tls (pre-built libwebsockets.a is linked above)
 if (USE_LIBWEBSOCKETS)
     # TLS
