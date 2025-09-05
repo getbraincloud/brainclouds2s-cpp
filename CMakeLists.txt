@@ -196,7 +196,7 @@ if (WIN32)
             )
 elseif(UNIX)
 	find_package(libwebsockets REQUIRED)
-	target_link_libraries(brainCloudS2S PRIVATE websockets)
+	target_link_libraries(brainCloudS2S PRIVATE libwebsockets::libwebsockets)
 	
 	find_package(Threads REQUIRED)
     target_link_libraries(brainCloudS2S PUBLIC ${CMAKE_THREAD_LIBS_INIT})
