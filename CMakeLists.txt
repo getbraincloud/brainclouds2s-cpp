@@ -195,19 +195,8 @@ if (WIN32)
             /MP     # Multi-core compilation
             )
 elseif(UNIX)
-	find_package(libwebsockets REQUIRED)
+	find_package(libwebsockets CONFIG REQUIRED)
 	target_link_libraries(brainCloudS2S PRIVATE websockets)
-	
-	find_library(LIBWEBSOCKETS_LIBRARY
-		NAMES websockets libwebsockets liblibwebsockets
-		PATHS ${VCPKG}/installed/x64-linux/lib
-	)
-
-	if (NOT LIBWEBSOCKETS_LIBRARY)
-		message(FATAL_ERROR "libwebsockets not found in vcpkg")
-	endif()
-	
-	target_link_libraries(brainCloudS2S PRIVATE ${LIBWEBSOCKETS_LIBRARY})
 	
 	find_package(Threads REQUIRED)
     target_link_libraries(brainCloudS2S PUBLIC ${CMAKE_THREAD_LIBS_INIT})
