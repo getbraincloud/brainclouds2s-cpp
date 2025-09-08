@@ -14,6 +14,7 @@ namespace BrainCloud
 {
     // logging options include: LLL_DEBUG | LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE
     // call lws_set_log_level from main
+    static std::string ca_bundle;
 
     static struct lws_protocols protocols[] = {
         {
@@ -113,8 +114,8 @@ namespace BrainCloud
             info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
             #if(LWS_LIBRARY_VERSION_MAJOR >= 4) && !defined(BC_SSL_ALLOW_SELFSIGNED)
                 //info.options |= LWS_SERVER_OPTION_DISABLE_OS_CA_CERTS;
-                info.client_ssl_ca_mem = full_certs.front().c_str();
-                info.client_ssl_ca_mem_len = static_cast<unsigned int>(full_certs.front().length());
+                info.client_ssl_ca_mem = ca_bundle.c_str();
+                info.client_ssl_ca_mem_len = static_cast<unsigned int>(ca_bundle.size() + 1);
             #endif
             std::unique_lock<std::mutex> lock(lwsContextMutex);
             _pLwsContext = lws_create_context(&info);
@@ -459,6 +460,15 @@ namespace BrainCloud
                               "JEiU0Zsnvgc/ubhPgXRR4Xq37Z0j4r7g1SgEEzwxA57demyPxgcYxn/eR44/KJ4EBs+lVDR3veyJ\n"
                               "m+kXQ99b21/+jh5Xos1AnX5iItreGCc=\n"
                               "-----END CERTIFICATE-----");
+
+        ca_bundle.clear();
+        for (const auto& cert : full_certs)
+        {
+            ca_bundle += cert;
+            if (ca_bundle.back() != '\n')
+                ca_bundle.push_back('\n');
+        }
+
 
     }
 #endif
