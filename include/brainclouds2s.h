@@ -16,7 +16,7 @@ namespace BrainCloud {
     static const std::string DEFAULT_S2S_URL =
             "https://api.braincloudservers.com/s2sdispatcher";
 
-    static const std::string s_brainCloudS2SVersion = "5.7.0";
+    static const std::string s_brainCloudS2SVersion = "5.8.0";
 
     class S2SContext;
     class BrainCloudRTT;
