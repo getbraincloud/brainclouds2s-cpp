@@ -25,7 +25,7 @@ endif()
 if (SSL_ALLOW_SELFSIGNED)
     message("brainCloudS2S Skipping certificate verification in RTT")
     add_definitions(-DBC_SSL_ALLOW_SELFSIGNED)
-    else()
+else()
     message("brainCloudS2S Building with certificates for RTT")
 endif()
 

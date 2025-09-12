@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <iostream>
 #include <cctype>
+#include <libwebsockets.h>
+#include <stdio.h>
 
 #define MAX_PAYLOAD (64 * 1024)
 
@@ -63,7 +65,13 @@ namespace BrainCloud
         , _isConnecting(true)
         , _authHeaders(headers)
     {
-
+#if defined(LWS_OPENSSL_SUPPORT)
+        printf("Using OpenSSL\n");
+#elif defined(LWS_WITH_MBEDTLS)
+        printf("Using MbedTLS\n");
+#else
+        printf("No TLS support\n");
+#endif
         std::string uriCopy = uri;
 
         // Split address into host/addr/origin/protocol
