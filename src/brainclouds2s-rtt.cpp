@@ -26,11 +26,8 @@ namespace BrainCloud {
 
         Json::FastWriter fw;
 
-        s2s_log(static_cast<std::stringstream&&>(std::stringstream{} << " start request: "<<(in_callback == static_cast<IServerCallback*>(m_commsLayer))<<", "<<in_callback<<", "<<m_commsLayer));
-
         m_S2SContext->request(fw.write(json), [this, in_callback](const std::string& result)
         {
-            s2s_log(static_cast<std::stringstream&&>(std::stringstream{} <<" inside callback: "<<(in_callback == static_cast<IServerCallback*>(m_commsLayer))<<", "<<in_callback<<", "<<m_commsLayer));
             in_callback->serverCallback(ServiceName::RTTRegistration, ServiceOperation::RequestSystemConnection, result);
         });
     }

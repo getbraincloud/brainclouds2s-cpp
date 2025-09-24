@@ -4,6 +4,9 @@
 //
 
 #include <iostream>
+#include <iomanip>
+#include <ctime>
+#include <sstream>
 
 #if __cplusplus >= 201103L && !defined(__ANDROID__)
 #include <iostream>
@@ -104,6 +107,16 @@ namespace BrainCloud
 #else
         usleep(millis * 1000);
 #endif
+    }
+    std::string TimeUtil::currentTimestamp()
+    {
+        auto t = std::time(nullptr);
+        auto tm = *std::localtime(&t);
+
+        std::ostringstream oss;
+        oss << std::put_time(&tm, "%Y/%m/%d %H:%M:%S");
+
+        return oss.str();
     }
 }
 

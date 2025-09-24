@@ -11,6 +11,17 @@
 #include <string>
 #include "brainclouds2s-rtt.h"
 #include <IRTTConnectCallback.h>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <stdexcept>
+#include <TimeUtil.h>
+
+#if defined(_WIN32)
+#include <windows.h>
+#else
+#include <fstream>
+#endif
 
 namespace BrainCloud {
     static const std::string DEFAULT_S2S_URL =
@@ -24,8 +35,84 @@ namespace BrainCloud {
     using S2SCallback = std::function<void(const std::string &)>;
     using S2SContextRef = std::shared_ptr<S2SContext>;
 
-    void s2s_log(const std::stringstream &message, bool file = false);
-    void s2s_log(const std::string &message, bool file = false);
+    extern std::string g_logFilePath;
+
+    //void s2s_log(const std::string &message, bool file = false);
+    //void s2s_log(const std::string& message);
+    template<typename ...Args>
+    std::string buildLogMessage(Args && ...args)
+    {
+        std::string timeStamp = TimeUtil::currentTimestamp();
+
+        std::ostringstream oss;
+        oss << "[" << timeStamp << "] ";
+        // Fold expression (not available in C++11), so we expand manually
+        using expander = int[];
+        (void)expander {
+            0, ((void)(oss << std::forward<Args>(args)), 0)...
+        };
+        return oss.str();
+    }
+
+    template <typename... Args>
+    void s2s_log(Args&&... args)
+    {
+        std::string text = buildLogMessage(std::forward<Args>(args)...);
+
+        //Always print to console
+        std::cout << text << std::endl << std::flush;
+
+        if (!g_logFilePath.empty()) {
+#if defined(_WIN32)
+            // Windows needs this implementation to be able to share the ability to write to this file with another program
+            HANDLE hFile = CreateFileA(
+                g_logFilePath.c_str(),
+                FILE_APPEND_DATA,
+                FILE_SHARE_WRITE | FILE_SHARE_READ,
+                NULL,
+                OPEN_ALWAYS,
+                FILE_ATTRIBUTE_NORMAL,
+                NULL
+            );
+
+            if (hFile == INVALID_HANDLE_VALUE) {
+                std::cerr << "Failed to open log file: " << g_logFilePath << std::endl;
+                return;
+            }
+
+            std::string line = text + "\r\n";
+            DWORD written;
+            BOOL ok = WriteFile(
+                hFile,
+                line.c_str(),
+                static_cast<DWORD>(line.size()),
+                &written,
+                NULL
+            );
+
+            CloseHandle(hFile);
+
+            if (!ok || written != line.size()) {
+                std::cerr << "Failed to write to log file: " << g_logFilePath << std::endl;
+            }
+
+#else
+            // --- Linux / macOS implementation ---
+            std::ofstream out(g_logFilePath.c_str(), std::ios::app);
+            if (!out) {
+                std::cerr << "Failed to open log file: " << g_logFilePath << std::endl;
+                return;
+            }
+            out << text << "\n";
+#endif
+        }
+    }
+
+    /*
+    * Set a log file path - if set then logs will be written to this file
+    * @param path the file path for the log file
+    */
+    void logToFile(const std::string& path);
 
     class S2SContext {
     public:
@@ -122,5 +209,6 @@ namespace BrainCloud {
         std::string m_url = "";
         std::string m_sessionId = "";
     };
+    
 }
 #endif /* BRAINCLOUDS2S_H_INCLUDED */

@@ -16,6 +16,7 @@ namespace BrainCloud {
     public:
         static int64_t getCurrentTimeMillis();
         static void sleepMillis(int millis);
+        static std::string currentTimestamp();
     };
 
 }

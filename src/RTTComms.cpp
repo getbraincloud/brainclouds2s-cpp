@@ -155,9 +155,6 @@ namespace BrainCloud
             _appId = _context->getAppId();
             _sessionId = _context->getSessionId();
 
-            s2s_log("request from %s", this);
-            //s2s_log(static_cast<std::stringstream&&>(std::stringstream{} <<" JO JO JO JO request from "<<this<<std::endl<<std::flush));
-            //auto pThis = std::unique_ptr<IServerCallback>((this));
             _context->getRTTService()->requestS2SConnection(this);
         }
     }
@@ -281,9 +278,8 @@ namespace BrainCloud
     void RTTComms::serverCallback(ServiceName serviceName, ServiceOperation serviceOperation, const std::string& jsonData)
     {
 #if RTTCOMMS_LOG_EVERY_METHODS
-        s2s_log(static_cast<std::stringstream&&>(std::stringstream{} << "VERBOSE: RTTComms::serverCallback()" << serviceName.getValue() << ", " << serviceOperation.getValue() << ", " << jsonData));
+        s2s_log("VERBOSE: RTTComms::serverCallback()", serviceName.getValue(), ", ", serviceOperation.getValue(), ", ", jsonData));
 #endif
-        s2s_log(static_cast<std::stringstream&&>(std::stringstream{} <<"serverCallback "<<std::endl));
 
         if (serviceName == ServiceName::RTTRegistration)
         {
@@ -527,7 +523,6 @@ namespace BrainCloud
         s2s_log("VERBOSE: RTTComms::onSocketConnected");
 #endif
         startReceiving();
-        s2s_log(static_cast<std::stringstream&&>(std::stringstream{} <<"why am I doing this again"<<std::endl));
         if (!send(buildConnectionRequest(_useWebSocket ? "ws" : "tcp")))
         {
             failedToConnect();
@@ -549,7 +544,6 @@ namespace BrainCloud
             Json::FastWriter writer;
             std::string message = writer.write(jsonData);
 
-            s2s_log(static_cast<std::stringstream&&>(std::stringstream{} <<"sending "<<message<<std::endl));
             _socket->send(message);
         }
 
@@ -643,7 +637,7 @@ namespace BrainCloud
 
         std::string serviceName = json["service"].asString();
         std::string operation = json["operation"].asString();
-        s2s_log(static_cast<std::stringstream&&>(std::stringstream{} <<serviceName.c_str()<<message.c_str()<<std::endl));
+        s2s_log(serviceName.c_str(),message.c_str());
         if (serviceName == "rtt")
         {
             if (operation == "CONNECT")

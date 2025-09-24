@@ -128,3 +128,35 @@ void wait(S2SContextRef pContext)
     }
 }
 
+std::string getExecutableDir()
+{
+#if defined(_WIN32)
+    char path[MAX_PATH];
+    DWORD len = GetModuleFileNameA(NULL, path, MAX_PATH);
+    if (len == 0 || len == MAX_PATH)
+        throw std::runtime_error("Failed to get executable path");
+    std::string fullPath(path);
+    size_t pos = fullPath.find_last_of("\\/");
+    return (pos == std::string::npos) ? fullPath : fullPath.substr(0, pos);
+
+#elif defined(__APPLE__)
+    char path[PATH_MAX];
+    uint32_t size = sizeof(path);
+    if (_NSGetExecutablePath(path, &size) != 0)
+        throw std::runtime_error("Failed to get executable path");
+    std::string fullPath(path);
+    size_t pos = fullPath.find_last_of('/');
+    return (pos == std::string::npos) ? fullPath : fullPath.substr(0, pos);
+
+#else // Linux
+    char path[PATH_MAX];
+    ssize_t len = readlink("/proc/self/exe", path, sizeof(path) - 1);
+    if (len == -1)
+        throw std::runtime_error("Failed to get executable path");
+    path[len] = '\0';
+    std::string fullPath(path);
+    size_t pos = fullPath.find_last_of('/');
+    return (pos == std::string::npos) ? fullPath : fullPath.substr(0, pos);
+#endif
+}
+
