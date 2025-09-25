@@ -59,8 +59,7 @@ namespace BrainCloud {
     {
         std::string text = buildLogMessage(std::forward<Args>(args)...);
 
-        //Always print to console
-        std::cout << text << std::endl << std::flush;
+        
 
         if (!g_logFilePath.empty()) {
 #if defined(_WIN32)
@@ -94,6 +93,8 @@ namespace BrainCloud {
 
             if (!ok || written != line.size()) {
                 std::cerr << "Failed to write to log file: " << g_logFilePath << std::endl;
+                //print to console if failed to write log to file
+                std::cout << text << std::endl << std::flush;
             }
 
 #else
@@ -101,10 +102,16 @@ namespace BrainCloud {
             std::ofstream out(g_logFilePath.c_str(), std::ios::app);
             if (!out) {
                 std::cerr << "Failed to open log file: " << g_logFilePath << std::endl;
+                //print to console if failed to write log to file
+                std::cout << text << std::endl << std::flush;
                 return;
             }
             out << text << "\n";
 #endif
+        }
+        else {
+            //Print to console if no file output was set
+            std::cout << text << std::endl << std::flush;
         }
     }
 
