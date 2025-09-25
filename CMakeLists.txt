@@ -198,7 +198,7 @@ if (WIN32)
             /MP     # Multi-core compilation
             )
 elseif(UNIX)
-	find_package(libwebsockets CONFIG REQUIRED)
+	find_package(libwebsockets REQUIRED)
 	target_link_libraries(brainCloudS2S PRIVATE websockets)
 	
 	find_package(Threads REQUIRED)
