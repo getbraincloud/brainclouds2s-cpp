@@ -326,7 +326,7 @@ TEST_CASE("Bad Requests - Auto auth", "[S2SAA]")
         REQUIRE_FALSE(ret);
     }
 
-    SECTION("Queued requests but of of them is bad")
+    SECTION("Queued requests but 1 of them is bad")
     {
         auto bad_request = "{ \
             \"service\": \"timey\", \
