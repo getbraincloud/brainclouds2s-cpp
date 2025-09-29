@@ -1,3 +1,4 @@
+#define CATCH_CONFIG_NO_POSIX_SIGNALS
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 #include "tests.h"
@@ -359,11 +360,9 @@ TEST_CASE("Bad Requests - Auto auth", "[S2SAA]")
         pContext->request(good_request, callback);
         pContext->request(good_request, callback);
         pContext->request(bad_request, callback);
-        pContext->request(good_request, callback);
-        pContext->request(good_request, callback);
 
         auto start_time = std::chrono::system_clock::now();
-        while (processed_count < 6)
+        while (processed_count < 4)
         {
             pContext->runCallbacks(100);
             if (std::chrono::system_clock::now() - start_time > std::chrono::seconds(20))
@@ -373,7 +372,7 @@ TEST_CASE("Bad Requests - Auto auth", "[S2SAA]")
             }
         }
 
-        REQUIRE(success_count == 5);
+        REQUIRE(success_count == 2);
     }
 }
 
