@@ -81,7 +81,6 @@ list(APPEND includes PUBLIC "lib/jsoncpp-1.0.0")
 # Libraries
 #=============================================================================
 find_package(CURL REQUIRED)
-find_package(libwebsockets REQUIRED)
 # android uses openssl instead of tls (pre-built libwebsockets.a is linked above)
 if (USE_LIBWEBSOCKETS)
     # TLS
@@ -186,10 +185,10 @@ target_link_libraries(brainCloudS2S PUBLIC ${libs} CURL::libcurl)
 
 add_compile_definitions(CACERTS_FILE_PATH="${CMAKE_SOURCE_DIR}/resources/cacerts.pem")
 
+find_package(libwebsockets CONFIG REQUIRED)
 # Find pthreads based on the platform
 if (WIN32)
     find_package(PThreads4W CONFIG REQUIRED)
-	find_package(libwebsockets CONFIG REQUIRED)
     target_link_libraries(brainCloudS2S PRIVATE PThreads4W::PThreads4W)
 	target_link_libraries(brainCloudS2S PRIVATE websockets_shared)
 	
@@ -198,7 +197,7 @@ if (WIN32)
             /MP     # Multi-core compilation
             )
 elseif(UNIX)
-	find_package(libwebsockets CONFIG REQUIRED)
+	
 	target_link_libraries(brainCloudS2S PRIVATE websockets)
 	
 	find_package(Threads REQUIRED)

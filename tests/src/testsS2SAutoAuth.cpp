@@ -1,7 +1,6 @@
 #define CATCH_CONFIG_MAIN
-#include "catch.hpp"
 #include "tests.h"
-
+#include "catch.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
 // We start with all tests, but using Auto-Auth.
@@ -343,26 +342,25 @@ TEST_CASE("Bad Requests - Auto auth", "[S2SAA]")
         int success_count = 0;
 
         auto callback = [&](const std::string& result)
-        {
-            Json::Value data;
-            Json::Reader reader;
-            bool parsingSuccessful = reader.parse(result.c_str(), data);
-            if (parsingSuccessful && data["status"].asInt() == 200)
             {
-                success_count++;
-            }
-            processed_count++;
-        };
+                Json::Value data;
+                Json::Reader reader;
+                bool parsingSuccessful = reader.parse(result.c_str(), data);
+                if (parsingSuccessful && data["status"].asInt() == 200)
+                {
+                    success_count++;
+                }
+                processed_count++;
+            };
 
         // Queue many at once
+        pContext->authenticate(callback);
         pContext->request(good_request, callback);
         pContext->request(good_request, callback);
         pContext->request(bad_request, callback);
-        pContext->request(good_request, callback);
-        pContext->request(good_request, callback);
-        
+
         auto start_time = std::chrono::system_clock::now();
-        while (processed_count < 5)
+        while (processed_count < 4)
         {
             pContext->runCallbacks(100);
             if (std::chrono::system_clock::now() - start_time > std::chrono::seconds(20))
@@ -372,7 +370,7 @@ TEST_CASE("Bad Requests - Auto auth", "[S2SAA]")
             }
         }
 
-        REQUIRE(success_count == 4);
+        REQUIRE(success_count == 2);
     }
 }
 

@@ -1,0 +1,53 @@
+FROM ubuntu:22.04
+
+RUN apt update
+RUN DEBIAN_FRONTEND=noninteractive apt install -y \
+    build-essential \
+    tar \
+    curl \
+    wget \
+    zip \
+    unzip \
+    git \
+    cmake \
+    ninja-build \
+    pkg-config \
+    libcurl4-openssl-dev \
+    libwebsockets-dev \
+    libjsoncpp-dev \
+	ca-certificates \
+	gnupg
+	
+# brainCloud S2S lib requires cmake > 3.30 but... 
+# Ubuntu 22.04 only goes up to 3.22 so...
+# let's install a newer version of cmake
+ARG CMAKE_VERSION="3.31.8"
+ARG CMAKE_ARCH="linux-x86_64"
+
+# Download and extract
+RUN wget https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION-$CMAKE_ARCH.tar.gz
+RUN tar -xf cmake-$CMAKE_VERSION-$CMAKE_ARCH.tar.gz
+
+# Optionally move to /opt and symlink
+RUN mv cmake-$CMAKE_VERSION-$CMAKE_ARCH /opt/cmake-$CMAKE_VERSION
+RUN ln -s /opt/cmake-$CMAKE_VERSION/bin/cmake /usr/local/bin/cmake
+
+RUN git clone https://github.com/microsoft/vcpkg.git /vcpkg
+
+RUN ls -a
+
+RUN cd /vcpkg;		\
+	./bootstrap-vcpkg.sh;
+
+ENV VCPKG_ROOT=/vcpkg
+ENV VCPKG=$VCPKG_ROOT
+ENV PATH="$VCPKG_ROOT:$PATH"
+	
+COPY . /usr/bcs2s
+
+
+RUN set -ex;							\
+	cd /usr/bcs2s;						\
+	cd build;							\
+	/usr/local/bin/cmake --preset=unix-default -DBUILD_TESTS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..;  		\
+	/usr/local/bin/cmake --build . --target testbcs2s --config Debug;

@@ -1,5 +1,5 @@
-#include "catch.hpp"
 #include "tests.h"
+#include "catch.hpp"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -68,5 +68,8 @@ TEST_CASE("Logs LogToFile", "[S2S]")
 
         // 4. ensure rtt has been enabled
         REQUIRE(rttService->getRTTEnabled());
+
+        //reset this so logs go back to console
+        logToFile("");
     }
 }
