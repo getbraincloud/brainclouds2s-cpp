@@ -1,8 +1,6 @@
-#define CATCH_CONFIG_NO_POSIX_SIGNALS
 #define CATCH_CONFIG_MAIN
-#include "catch.hpp"
 #include "tests.h"
-
+#include "catch.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
 // We start with all tests, but using Auto-Auth.

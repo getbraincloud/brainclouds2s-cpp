@@ -20,7 +20,7 @@
 #include <limits.h>
 #endif
 
-
+#define CATCH_CONFIG_NO_POSIX_SIGNALS
 
 extern std::string BRAINCLOUD_APP_ID;
 extern std::string BRAINCLOUD_SERVER_NAME;
