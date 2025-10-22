@@ -59,3 +59,5 @@ build/
 cmake-*/
 **/.idea/
 ids.txt
+
+*.*_tests
