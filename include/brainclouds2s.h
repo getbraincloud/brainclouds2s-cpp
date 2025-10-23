@@ -17,6 +17,10 @@
 #include <stdexcept>
 #include <TimeUtil.h>
 
+#include "obfuscate.h"
+#include <regex>
+#include <vector>
+
 #if defined(_WIN32)
 #include <windows.h>
 #else
@@ -35,22 +39,90 @@ namespace BrainCloud {
     using S2SCallback = std::function<void(const std::string &)>;
     using S2SContextRef = std::shared_ptr<S2SContext>;
 
+    static const std::vector<std::string> sensitiveKeys = 
+    {
+            "secretKey", "serverSecret", "ApiKey", "secret", "token", "X-RTT-SECRET"
+    };
+
     extern std::string g_logFilePath;
 
-    //void s2s_log(const std::string &message, bool file = false);
-    //void s2s_log(const std::string& message);
+    static std::string obfuscateString(const std::string& s) 
+    {
+        // TODO: explore different methods of obfuscating the string for now just return "[REDACTED]
+        return "[REDACTED]";
+    }
+
+    // Escape a string for safe insertion into a regex alternation
+    static std::string escapeForRegex(const std::string& s) 
+    {
+        static const std::string meta = R"(\^$.|?*+()[]{} )"; // include space to be safe
+        std::string out;
+        out.reserve(s.size() * 2);
+        for (char c : s) {
+            if (meta.find(c) != std::string::npos) out.push_back('\\');
+            out.push_back(c);
+        }
+        return out;
+    }
+
+    static std::string redactSecretKeys(const std::string& input) 
+    {
+        std::string out = escapeForRegex(input);
+        std::string result;
+        size_t last = 0;
+
+        // You can list all sensitive keys here
+        
+
+        for (size_t i = 0; i < sensitiveKeys.size(); ++i) {
+            std::regex re(
+                "(\\\"?)" + sensitiveKeys[i] + "\\1\\s*:\\s*\\\"(.*?)\\\"",
+                std::regex::icase
+            );
+
+            std::string temp;
+            std::sregex_iterator it(out.begin(), out.end(), re);
+            std::sregex_iterator end;
+            size_t lastPos = 0;
+
+            for (; it != end; ++it) {
+                auto m = *it;
+                size_t pos = m.position(0);
+                size_t len = m.length(0);
+                temp.append(out, lastPos, pos - lastPos);
+
+                std::string prefix = out.substr(pos, m.position(2) - pos);
+                temp += prefix;
+                temp += obfuscateString(m.str(2));
+                temp += "\"";
+                lastPos = pos + len;
+            }
+
+            temp.append(out, lastPos, std::string::npos);
+            out.swap(temp);
+        }
+
+        return out;
+    }
+
     template<typename ...Args>
     std::string buildLogMessage(Args && ...args)
     {
         std::string timeStamp = TimeUtil::currentTimestamp();
-
         std::ostringstream oss;
         oss << "[" << timeStamp << "] ";
-        // Fold expression (not available in C++11), so we expand manually
+
         using expander = int[];
         (void)expander {
-            0, ((void)(oss << std::forward<Args>(args)), 0)...
+            0, (
+                void(
+                    // For std::string arguments, redact secrets
+                    (std::is_same<typename std::decay<Args>::type, std::string>::value
+                        ? oss << redactSecretKeys(std::forward<Args>(args))
+                        : oss << args)
+                    ), 0)...
         };
+
         return oss.str();
     }
 
@@ -58,8 +130,6 @@ namespace BrainCloud {
     void s2s_log(Args&&... args)
     {
         std::string text = buildLogMessage(std::forward<Args>(args)...);
-
-        
 
         if (!g_logFilePath.empty()) {
 #if defined(_WIN32)
@@ -115,6 +185,7 @@ namespace BrainCloud {
         }
     }
 
+    
     /*
     * Set a log file path - if set then logs will be written to this file
     * @param path the file path for the log file

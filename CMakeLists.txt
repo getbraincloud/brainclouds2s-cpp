@@ -81,6 +81,7 @@ list(APPEND includes PUBLIC "lib/jsoncpp-1.0.0")
 # Libraries
 #=============================================================================
 find_package(CURL REQUIRED)
+
 # android uses openssl instead of tls (pre-built libwebsockets.a is linked above)
 if (USE_LIBWEBSOCKETS)
     # TLS
@@ -178,10 +179,12 @@ add_library(brainCloudS2S STATIC
         ${JSONCPP_SRCS_FILES}
         )
 
+
 # Setup includes and links libraries
 target_include_directories(brainCloudS2S PUBLIC "./include" ${includes})
 target_include_directories(brainCloudS2S PRIVATE "./src")
 target_link_libraries(brainCloudS2S PUBLIC ${libs} CURL::libcurl)
+
 
 add_compile_definitions(CACERTS_FILE_PATH="${CMAKE_SOURCE_DIR}/resources/cacerts.pem")
 
