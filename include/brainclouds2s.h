@@ -70,9 +70,6 @@ namespace BrainCloud {
         std::string result;
         size_t last = 0;
 
-        // You can list all sensitive keys here
-        
-
         for (size_t i = 0; i < sensitiveKeys.size(); ++i) {
             std::regex re(
                 "(\\\"?)" + sensitiveKeys[i] + "\\1\\s*:\\s*\\\"(.*?)\\\"",
