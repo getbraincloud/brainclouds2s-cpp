@@ -1,7 +1,7 @@
 {
   "dependencies": [
     { "name": "curl"},
-    { "name": "libwebsockets", "version>=":"4.3.3"},
+    { "name": "libwebsockets"},
     { "name": "pthreads"},
     { "name": "libuv"}
   ]
