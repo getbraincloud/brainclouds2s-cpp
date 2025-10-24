@@ -66,7 +66,7 @@ namespace BrainCloud {
 
     static std::string redactSecretKeys(const std::string& input) 
     {
-        std::string out = escapeForRegex(input);
+        std::string out = input;
         std::string result;
         size_t last = 0;
 
