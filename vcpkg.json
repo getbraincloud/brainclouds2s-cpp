@@ -1,8 +1,8 @@
 {
   "dependencies": [
-    { "name": "curl", "version>=": "8.8.0"},
+    { "name": "curl"},
     { "name": "libwebsockets", "version>=":"4.3.3"},
-    { "name": "pthreads", "version>=": "3.0.0#14"},
-    { "name": "libuv", "version>=": "1.48.0"}
+    { "name": "pthreads"},
+    { "name": "libuv"}
   ]
 }
