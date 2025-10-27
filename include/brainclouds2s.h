@@ -17,6 +17,9 @@
 #include <stdexcept>
 #include <TimeUtil.h>
 
+#include <regex>
+#include <vector>
+
 #if defined(_WIN32)
 #include <windows.h>
 #else
@@ -35,22 +38,78 @@ namespace BrainCloud {
     using S2SCallback = std::function<void(const std::string &)>;
     using S2SContextRef = std::shared_ptr<S2SContext>;
 
-    extern std::string g_logFilePath;
+    static const std::vector<std::string> sensitiveKeys = 
+    {
+            "secretKey", "serverSecret", "ApiKey", "secret", "token", "X-RTT-SECRET"
+    };
 
-    //void s2s_log(const std::string &message, bool file = false);
-    //void s2s_log(const std::string& message);
+    extern std::string g_logFilePath;
+    extern bool g_showSecretLogs;
+
+    static std::string obfuscateString(const std::string& s) 
+    {
+        // TODO: explore different methods of obfuscating the string for now just return "[REDACTED]
+        return "[REDACTED]";
+    }
+
+    static std::string redactSecretKeys(const std::string& input) 
+    {
+        std::string out = input;
+
+        for (auto& key : sensitiveKeys) {
+            size_t pos = 0;
+            std::string needle = "\"" + key + "\"";
+            while ((pos = out.find(needle, pos)) != std::string::npos) {
+                // find the colon after the key
+                size_t colon = out.find(':', pos + needle.size());
+                if (colon == std::string::npos) break;
+
+                // find the first quote after colon
+                size_t quoteStart = out.find('"', colon);
+                if (quoteStart == std::string::npos) break;
+
+                // find the closing quote
+                size_t quoteEnd = out.find('"', quoteStart + 1);
+                if (quoteEnd == std::string::npos) break;
+
+                // replace value
+                std::string value = out.substr(quoteStart + 1, quoteEnd - quoteStart - 1);
+                std::string replacement = obfuscateString(value);
+                out.replace(quoteStart + 1, value.size(), replacement);
+
+                pos = quoteEnd + 1;
+            }
+        }
+
+        return out;
+    }
+
     template<typename ...Args>
     std::string buildLogMessage(Args && ...args)
     {
         std::string timeStamp = TimeUtil::currentTimestamp();
-
         std::ostringstream oss;
         oss << "[" << timeStamp << "] ";
-        // Fold expression (not available in C++11), so we expand manually
         using expander = int[];
-        (void)expander {
-            0, ((void)(oss << std::forward<Args>(args)), 0)...
-        };
+
+        if (g_showSecretLogs) {
+            (void)expander {
+                0, (
+                    void( oss << std::forward<Args>(args)), 0) ...
+            };
+        }
+        else {
+            (void)expander {
+                0, (
+                    void(
+                        // For std::string arguments, redact secrets
+                        (std::is_same<typename std::decay<Args>::type, std::string>::value
+                            ? oss << redactSecretKeys(std::forward<Args>(args))
+                            : oss << args)
+                        ), 0)...
+            };
+        }
+        
         return oss.str();
     }
 
@@ -58,8 +117,6 @@ namespace BrainCloud {
     void s2s_log(Args&&... args)
     {
         std::string text = buildLogMessage(std::forward<Args>(args)...);
-
-        
 
         if (!g_logFilePath.empty()) {
 #if defined(_WIN32)
@@ -94,7 +151,7 @@ namespace BrainCloud {
             if (!ok || written != line.size()) {
                 std::cerr << "Failed to write to log file: " << g_logFilePath << std::endl;
                 //print to console if failed to write log to file
-                std::cout << text << std::endl << std::flush;
+                std::cout << text << "\n";
             }
 
 #else
@@ -111,15 +168,24 @@ namespace BrainCloud {
         }
         else {
             //Print to console if no file output was set
-            std::cout << text << std::endl << std::flush;
+            std::cout << text << "\n";
         }
     }
 
+    
     /*
     * Set a log file path - if set then logs will be written to this file
     * @param path the file path for the log file
     */
     void logToFile(const std::string& path);
+
+    /*
+    * Enable or disable showing secret keys in logs
+    */
+    inline void showSecretLogs(bool enabled)
+    {
+        g_showSecretLogs = enabled;
+    }
 
     class S2SContext {
     public:

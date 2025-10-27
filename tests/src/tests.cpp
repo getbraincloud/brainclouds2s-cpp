@@ -61,7 +61,7 @@ void loadIdsIfNot()
 
         printf("\nApp ID - %s", BRAINCLOUD_APP_ID.c_str());
         printf("\nserverName - %s", BRAINCLOUD_SERVER_NAME.c_str());
-        printf("\nserverSecret - %s", BRAINCLOUD_SERVER_SECRET.c_str());
+        printf("\nserverSecret - [REDACTED]");
         printf("\ns2sUrl - %s", BRAINCLOUD_SERVER_URL.c_str());
     }
 
