@@ -44,6 +44,7 @@ namespace BrainCloud {
     };
 
     extern std::string g_logFilePath;
+    extern bool g_showSecretLogs;
 
     static std::string obfuscateString(const std::string& s) 
     {
@@ -89,18 +90,26 @@ namespace BrainCloud {
         std::string timeStamp = TimeUtil::currentTimestamp();
         std::ostringstream oss;
         oss << "[" << timeStamp << "] ";
-
         using expander = int[];
-        (void)expander {
-            0, (
-                void(
-                    // For std::string arguments, redact secrets
-                    (std::is_same<typename std::decay<Args>::type, std::string>::value
-                        ? oss << redactSecretKeys(std::forward<Args>(args))
-                        : oss << args)
-                    ), 0)...
-        };
 
+        if (g_showSecretLogs) {
+            (void)expander {
+                0, (
+                    void( oss << std::forward<Args>(args)), 0) ...
+            };
+        }
+        else {
+            (void)expander {
+                0, (
+                    void(
+                        // For std::string arguments, redact secrets
+                        (std::is_same<typename std::decay<Args>::type, std::string>::value
+                            ? oss << redactSecretKeys(std::forward<Args>(args))
+                            : oss << args)
+                        ), 0)...
+            };
+        }
+        
         return oss.str();
     }
 
@@ -169,6 +178,14 @@ namespace BrainCloud {
     * @param path the file path for the log file
     */
     void logToFile(const std::string& path);
+
+    /*
+    * Enable or disable showing secret keys in logs
+    */
+    inline void showSecretLogs(bool enabled)
+    {
+        g_showSecretLogs = enabled;
+    }
 
     class S2SContext {
     public:

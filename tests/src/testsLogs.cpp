@@ -6,7 +6,7 @@
 // Test logs
 ///////////////////////////////////////////////////////////////////////////////
 
-TEST_CASE("Logs LogToFile", "[S2S]")
+TEST_CASE("Logs LogToFile", "Logging")
 {
     loadIdsIfNot();
     auto pContext = S2SContext::create(
@@ -71,5 +71,34 @@ TEST_CASE("Logs LogToFile", "[S2S]")
 
         //reset this so logs go back to console
         logToFile("");
+    }
+}
+
+TEST_CASE("Secret Obfuscation", "Logging")
+{
+    loadIdsIfNot();
+    auto pContext = S2SContext::create(
+        BRAINCLOUD_APP_ID,
+        BRAINCLOUD_SERVER_NAME,
+        BRAINCLOUD_SERVER_SECRET,
+        BRAINCLOUD_SERVER_URL,
+        false
+    );
+    pContext->setLogEnabled(true);
+
+
+    SECTION("Disable Secret Obfuscation") 
+    {
+        showSecretLogs(true);
+        auto retAuth = runAuth(pContext);
+        REQUIRE(retAuth);
+    }
+
+    SECTION("Enable Secret Obfuscation")
+    {
+        showSecretLogs(false);
+
+        auto retAuth = runAuth(pContext);
+        REQUIRE(retAuth);
     }
 }

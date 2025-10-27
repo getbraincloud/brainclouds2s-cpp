@@ -32,6 +32,7 @@ namespace BrainCloud {
     }
 
     std::string g_logFilePath;
+    bool g_showSecretLogs = false;
 
     class S2SContext_internal final
             : public S2SContext, public std::enable_shared_from_this<S2SContext_internal> {
@@ -708,5 +709,4 @@ namespace BrainCloud {
     {
         g_logFilePath = path;
     }
-
 }
