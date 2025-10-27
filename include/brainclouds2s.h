@@ -51,51 +51,33 @@ namespace BrainCloud {
         return "[REDACTED]";
     }
 
-    // Escape a string for safe insertion into a regex alternation
-    static std::string escapeForRegex(const std::string& s) 
-    {
-        static const std::string meta = R"(\^$.|?*+()[]{} )"; // include space to be safe
-        std::string out;
-        out.reserve(s.size() * 2);
-        for (char c : s) {
-            if (meta.find(c) != std::string::npos) out.push_back('\\');
-            out.push_back(c);
-        }
-        return out;
-    }
-
     static std::string redactSecretKeys(const std::string& input) 
     {
         std::string out = input;
-        std::string result;
-        size_t last = 0;
 
-        for (size_t i = 0; i < sensitiveKeys.size(); ++i) {
-            std::regex re(
-                "(\\\"?)" + sensitiveKeys[i] + "\\1\\s*:\\s*\\\"(.*?)\\\"",
-                std::regex::icase
-            );
+        for (auto& key : sensitiveKeys) {
+            size_t pos = 0;
+            std::string needle = "\"" + key + "\"";
+            while ((pos = out.find(needle, pos)) != std::string::npos) {
+                // find the colon after the key
+                size_t colon = out.find(':', pos + needle.size());
+                if (colon == std::string::npos) break;
 
-            std::string temp;
-            std::sregex_iterator it(out.begin(), out.end(), re);
-            std::sregex_iterator end;
-            size_t lastPos = 0;
+                // find the first quote after colon
+                size_t quoteStart = out.find('"', colon);
+                if (quoteStart == std::string::npos) break;
 
-            for (; it != end; ++it) {
-                auto m = *it;
-                size_t pos = m.position(0);
-                size_t len = m.length(0);
-                temp.append(out, lastPos, pos - lastPos);
+                // find the closing quote
+                size_t quoteEnd = out.find('"', quoteStart + 1);
+                if (quoteEnd == std::string::npos) break;
 
-                std::string prefix = out.substr(pos, m.position(2) - pos);
-                temp += prefix;
-                temp += obfuscateString(m.str(2));
-                temp += "\"";
-                lastPos = pos + len;
+                // replace value
+                std::string value = out.substr(quoteStart + 1, quoteEnd - quoteStart - 1);
+                std::string replacement = obfuscateString(value);
+                out.replace(quoteStart + 1, value.size(), replacement);
+
+                pos = quoteEnd + 1;
             }
-
-            temp.append(out, lastPos, std::string::npos);
-            out.swap(temp);
         }
 
         return out;
@@ -160,7 +142,7 @@ namespace BrainCloud {
             if (!ok || written != line.size()) {
                 std::cerr << "Failed to write to log file: " << g_logFilePath << std::endl;
                 //print to console if failed to write log to file
-                std::cout << text << std::endl << std::flush;
+                std::cout << text << "\n";
             }
 
 #else
@@ -177,7 +159,7 @@ namespace BrainCloud {
         }
         else {
             //Print to console if no file output was set
-            std::cout << text << std::endl << std::flush;
+            std::cout << text << "\n";
         }
     }
 
