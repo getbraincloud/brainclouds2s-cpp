@@ -88,10 +88,7 @@ TEST_CASE("RTT RegisterCallbacks", "[S2S]") {
         public:
             bool receivedCallback = false;
             void rttCallback(const std::string& jsonData) {
-
-                //We expect one callback to trigger to tell us we are connected to RTT;
                 INFO("RECEIVED RTT CALLBACK : " + jsonData);
-                printf("RECEIVED RTT CALLBACK2 : %s", jsonData.c_str());
                 receivedCallback = true;
             }
         }testRTTCallback;
