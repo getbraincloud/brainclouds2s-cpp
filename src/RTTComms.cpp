@@ -234,6 +234,7 @@ namespace BrainCloud
                 }
                 case RTTCallbackType::Event:
                 {
+                    s2s_log("Received RTT event: ", callback._message);
                     std::string serviceName = callback._json["service"].asString();
                     std::map<std::string, IRTTCallback*>::iterator it = _callbacks.find(serviceName);
                     if (it != _callbacks.end())
