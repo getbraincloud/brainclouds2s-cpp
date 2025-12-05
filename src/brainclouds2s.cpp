@@ -14,6 +14,7 @@
 #include <thread>
 #include <sstream>
 #include <iomanip>
+#include <cctype>
 #include "stdlib.h"
 
 
@@ -178,6 +179,7 @@ namespace BrainCloud {
 
     void S2SContext_internal::setLogEnabled(bool enabled) {
         m_logEnabled = enabled;
+        m_rttComms->enableLogging(enabled);
     }
 
     void S2SContext_internal::authenticateInternal(const AuthenticateCallback &callback) {
@@ -342,6 +344,7 @@ namespace BrainCloud {
         }
 
         std::string postData = toString(packet);
+        rtrim(postData);
 
         if (m_logEnabled) {
             s2s_log("[S2S SEND ", m_appId.c_str(), "] ", postData);

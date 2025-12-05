@@ -234,7 +234,6 @@ namespace BrainCloud
                 }
                 case RTTCallbackType::Event:
                 {
-                    s2s_log("Received RTT event: ", callback._message);
                     std::string serviceName = callback._json["service"].asString();
                     std::map<std::string, IRTTCallback*>::iterator it = _callbacks.find(serviceName);
                     if (it != _callbacks.end())
@@ -464,7 +463,7 @@ namespace BrainCloud
 
             if (_loggingEnabled)
             {
-                std::cout << "RTT: connected" << std::endl;
+                s2s_log("RTT: connected");
             }
 
             onSocketConnected();
@@ -536,7 +535,8 @@ namespace BrainCloud
         {
             Json::StyledWriter writer;
             std::string message = writer.write(jsonData);
-            std::cout << "RTT SEND " << message << std::endl;
+            rtrim(message);
+            s2s_log("[RTT SEND] ", message);
         }
 
         std::unique_lock<std::mutex> lock(_socketMutex);
@@ -614,7 +614,7 @@ namespace BrainCloud
     {
         if (_loggingEnabled)
         {
-            std::cout << "RTT RECV: " << message << std::endl;
+            s2s_log("[RTT RECV] ", message);
         }
 
         Json::Reader reader;
@@ -626,7 +626,6 @@ namespace BrainCloud
         }
 
         std::string serviceName = jsonData["service"].asString();
-        printf("  serviceName: %s, %s\n", serviceName.c_str(), message.c_str());
         processRttMessage(jsonData, message);
     }
 
@@ -638,7 +637,6 @@ namespace BrainCloud
 
         std::string serviceName = json["service"].asString();
         std::string operation = json["operation"].asString();
-        s2s_log(serviceName.c_str(),message.c_str());
         if (serviceName == "rtt")
         {
             if (operation == "CONNECT")

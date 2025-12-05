@@ -55,7 +55,7 @@ namespace BrainCloud
                 }
             }
         }
-
+        rtrim(msg);
         s2s_log("[LWS] ", msg);
     }
 
