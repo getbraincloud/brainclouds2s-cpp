@@ -186,7 +186,11 @@ target_include_directories(brainCloudS2S PRIVATE "./src")
 target_link_libraries(brainCloudS2S PUBLIC ${libs} CURL::libcurl)
 
 
-add_compile_definitions(CACERTS_FILE_PATH="${CMAKE_SOURCE_DIR}/resources/cacerts.pem")
+# Allow parent project to override the CA certs path
+if(NOT DEFINED CACERTS_FILE_PATH)
+    set(CACERTS_FILE_PATH "${CMAKE_SOURCE_DIR}/resources/cacerts.pem")
+endif()
+target_compile_definitions(brainCloudS2S PRIVATE CACERTS_FILE_PATH="${CACERTS_FILE_PATH}")
 
 find_package(libwebsockets CONFIG REQUIRED)
 # Find pthreads based on the platform
