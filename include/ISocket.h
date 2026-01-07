@@ -1,3 +1,4 @@
+// Copyright 2026 bitHeads, Inc. All Rights Reserved.
 #ifndef _ISOCKET_H_
 #define _ISOCKET_H_
 

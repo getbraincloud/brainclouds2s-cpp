@@ -1,3 +1,4 @@
+// Copyright 2026 bitHeads, Inc. All Rights Reserved.
 #include "RTTComms.h"
 #include "brainclouds2s.h"
 #include "IRTTCallback.h"

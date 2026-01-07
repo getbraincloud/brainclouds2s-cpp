@@ -1,3 +1,4 @@
+// Copyright 2026 bitHeads, Inc. All Rights Reserved.
 #if (!defined(TARGET_OS_WATCH) || TARGET_OS_WATCH == 0)
 
 #include "DefaultWebSocket.h"

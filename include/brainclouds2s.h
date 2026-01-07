@@ -1,7 +1,4 @@
-/*
-    2019 @ bitheads inc.
-    Author: David St-Louis
-*/
+// Copyright 2026 bitHeads, Inc. All Rights Reserved.
 
 #ifndef BRAINCLOUDS2S_H_INCLUDED
 #define BRAINCLOUDS2S_H_INCLUDED

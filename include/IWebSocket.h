@@ -1,3 +1,4 @@
+// Copyright 2026 bitHeads, Inc. All Rights Reserved.
 #ifndef _IWEBSOCKET_H_
 #define _IWEBSOCKET_H_
 

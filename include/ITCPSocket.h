@@ -1,3 +1,4 @@
+// Copyright 2026 bitHeads, Inc. All Rights Reserved.
 #ifndef _ITCPSOCKET_H_
 #define _ITCPSOCKET_H_
 
