@@ -89,6 +89,7 @@ namespace BrainCloud
         s2s_log("Using OpenSSL");
 #endif
 #endif
+
         std::string uriCopy = uri;
 
         // Split address into host/addr/origin/protocol
