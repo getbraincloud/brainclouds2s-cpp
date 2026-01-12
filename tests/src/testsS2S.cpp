@@ -1,5 +1,5 @@
-#include "catch.hpp"
 #include "tests.h"
+#include "catch.hpp"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -521,7 +521,7 @@ TEST_CASE("Bad Requests", "[S2S]")
         REQUIRE_FALSE(ret);
     }
 
-    SECTION("Queued requests but of of them is bad")
+    SECTION("Queued requests but 1 of them is bad")
     {
         auto bad_request = "{ \
             \"service\": \"timey\", \

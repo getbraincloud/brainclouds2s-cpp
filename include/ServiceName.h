@@ -1,3 +1,4 @@
+// Copyright 2026 bitHeads, Inc. All Rights Reserved.
 #pragma once
 
 #include <string>
@@ -12,6 +13,13 @@ namespace BrainCloud {
         static const ServiceName Authenticate;
 
 		static const ServiceName RTTRegistration;
+        static const ServiceName RTT;
+        static const ServiceName Chat;
+        static const ServiceName Messaging;
+        static const ServiceName Lobby;
+
+        // RS
+        static const ServiceName Relay;
         
         std::string getValue() const { return _value; }
 

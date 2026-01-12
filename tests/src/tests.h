@@ -10,6 +10,18 @@
 #include <json/json.h>
 #include <chrono>
 
+#if defined(_WIN32)
+#include <windows.h>
+#elif defined(__APPLE__)
+#include <mach-o/dyld.h>
+#include <limits.h>
+#else // Linux / Unix
+#include <unistd.h>
+#include <limits.h>
+#endif
+
+#define CATCH_CONFIG_NO_POSIX_SIGNALS
+
 extern std::string BRAINCLOUD_APP_ID;
 extern std::string BRAINCLOUD_SERVER_NAME;
 extern std::string BRAINCLOUD_SERVER_SECRET;
@@ -29,4 +41,6 @@ bool runAuth(S2SContextRef pContext);
 bool run(const std::string& request, S2SContextRef pContext);
 
 void wait(S2SContextRef pContext);
+
+std::string getExecutableDir();
 

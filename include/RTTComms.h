@@ -1,3 +1,4 @@
+// Copyright 2026 bitHeads, Inc. All Rights Reserved.
 #pragma once
 
 #if __APPLE__
@@ -5,10 +6,10 @@
     #include "TargetConditionals.h"
 #endif
 
+#include "brainclouds2s-rtt.h"
 #include "IServerCallback.h"
 #include "ServiceName.h"
 #include "ServiceOperation.h"
-#include "brainclouds2s-rtt.h"
 #include "IWebSocket.h"
 #include "ITCPSocket.h"
 

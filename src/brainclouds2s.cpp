@@ -1,3 +1,4 @@
+// Copyright 2026 bitHeads, Inc. All Rights Reserved.
 #include "brainclouds2s.h"
 #include "brainclouds2s-rtt.h"
 #include "RTTComms.h"
@@ -14,13 +15,13 @@
 #include <thread>
 #include <sstream>
 #include <iomanip>
+#include <cctype>
 #include "stdlib.h"
 
 
 using AuthenticateCallback = std::function<void(const Json::Value&)>;
 
 namespace BrainCloud {
-
 // Error code for expired session
     static const int SERVER_SESSION_EXPIRED = 40365;
 
@@ -31,6 +32,9 @@ namespace BrainCloud {
         Json::FastWriter writer;
         return writer.write(json);
     }
+
+    std::string g_logFilePath;
+    bool g_showSecretLogs = false;
 
     class S2SContext_internal final
             : public S2SContext, public std::enable_shared_from_this<S2SContext_internal> {
@@ -125,6 +129,8 @@ namespace BrainCloud {
         std::mutex m_requestsMutex;
         std::vector <Request> m_requestQueue;
 
+
+
         // RTT
         RTTComms * m_rttComms;
         BrainCloudRTT * m_rttService;
@@ -139,6 +145,8 @@ namespace BrainCloud {
                 new S2SContext_internal(appId, serverName, serverSecret, url, autoAuth)
         );
     }
+
+    
 
     S2SContext_internal::S2SContext_internal(const std::string &appId,
                                              const std::string &serverName,
@@ -169,8 +177,10 @@ namespace BrainCloud {
     BrainCloudRTT* S2SContext_internal::getRTTService() {
         return m_rttService;
     }
+
     void S2SContext_internal::setLogEnabled(bool enabled) {
         m_logEnabled = enabled;
+        m_rttComms->enableLogging(enabled);
     }
 
     void S2SContext_internal::authenticateInternal(const AuthenticateCallback &callback) {
@@ -229,7 +239,7 @@ namespace BrainCloud {
                 callback(json);
             }
 
-            s2s_log(static_cast<std::stringstream&&>(std::stringstream{} << "Session ID:" << pThis->m_sessionId));
+            s2s_log("Session ID:", pThis->m_sessionId);
         });
     }
 
@@ -335,9 +345,10 @@ namespace BrainCloud {
         }
 
         std::string postData = toString(packet);
+        rtrim(postData);
 
         if (m_logEnabled) {
-            s2s_log(static_cast<std::stringstream&&>(std::stringstream{} << "[S2S SEND " << m_appId.c_str() <<"] "<< postData.c_str()));
+            s2s_log("[S2S SEND ", m_appId.c_str(), "] ", postData);
         }
 
         auto pThis = shared_from_this();
@@ -356,13 +367,13 @@ namespace BrainCloud {
 
         curlSend(postData, [pThis, popAndDoNextRequest](const std::string &data) {
             if (pThis->m_logEnabled) {
-                s2s_log(static_cast<std::stringstream&&>(std::stringstream{} << "[S2S RECV " << pThis->m_appId << "] " << data));
+                s2s_log("[S2S RECV ", pThis->m_appId, "] ", data);
             }
             popAndDoNextRequest(data);
 
         }, [pThis, popAndDoNextRequest](const std::string &data) {
             if (pThis->m_logEnabled) {
-                s2s_log(static_cast<std::stringstream&&>(std::stringstream{} << "[S2S Error " << pThis->m_appId << "] " << data));
+                s2s_log("[S2S Error ", pThis->m_appId, "] ", data);
             }
             popAndDoNextRequest(data);
         });
@@ -697,28 +708,9 @@ namespace BrainCloud {
         m_rttComms->runCallbacks();
     }
 
-
-    void s2s_log(const std::stringstream &message, bool file)
+    
+    void logToFile(const std::string& path)
     {
-        s2s_log(message.str());
-    }
-
-    void s2s_log(const std::string &message, bool file)
-    {
-        //m_logMutex.lock();
-        if (file) {
-            std::time_t t = std::time(nullptr);
-            std::tm tm = *std::localtime(&t);
-            std::stringstream ss;
-            ss<< std::put_time(&tm, "%F_%T");
-            static std::string filename = std::string("s2s_log_") + ss.str() + std::string(".txt");
-
-            std::ofstream rttlog;
-            rttlog.open(filename, std::ios::out | std::ios::app);
-            rttlog << message << std::endl << std::flush;
-            rttlog.close();
-        }
-        std::cout << message << std::endl << std::flush;
-        //m_logMutex.unlock();
+        g_logFilePath = path;
     }
 }

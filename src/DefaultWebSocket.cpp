@@ -1,3 +1,4 @@
+// Copyright 2026 bitHeads, Inc. All Rights Reserved.
 #if (!defined(TARGET_OS_WATCH) || TARGET_OS_WATCH == 0)
 
 #include "DefaultWebSocket.h"
@@ -5,6 +6,7 @@
 #include <algorithm>
 #include <iostream>
 #include <cctype>
+#include <brainclouds2s.h>
 
 #define MAX_PAYLOAD (64 * 1024)
 
@@ -41,6 +43,23 @@ namespace BrainCloud
         { NULL, NULL, NULL /* terminator */ }
     };
 
+    void lwsLogCb(int level, const char* line) {
+        std::string msg(line);
+        // Remove LWS timestamp because we have our own
+        if (!msg.empty() && msg[0] == '[') {
+            size_t closing = msg.find(']');
+            if (closing != std::string::npos && closing + 1 < msg.size()) {
+                msg = msg.substr(closing + 1);
+                // Also trim any leading spaces
+                while (!msg.empty() && isspace(static_cast<unsigned char>(msg[0]))) {
+                    msg.erase(0, 1);
+                }
+            }
+        }
+        rtrim(msg);
+        s2s_log("[LWS] ", msg);
+    }
+
     static std::vector<std::string> full_certs;
     static bool added = false;
 
@@ -63,6 +82,13 @@ namespace BrainCloud
         , _isConnecting(true)
         , _authHeaders(headers)
     {
+#if defined(LWS_OPENSSL_SUPPORT)
+#if defined(LWS_WITH_MBEDTLS)
+        s2s_log("Using MbedTLS");
+#else
+        s2s_log("Using OpenSSL");
+#endif
+#endif
 
         std::string uriCopy = uri;
 
@@ -89,7 +115,7 @@ namespace BrainCloud
         std::transform(protocol.begin(), protocol.end(), protocolCaps.begin(), [](unsigned char c){ return std::toupper(c); });
         if (protocolCaps != "WS" && protocolCaps != "WSS")
         {
-            std::cout << "Invalid websocket protocol: " << protocol << std::endl;
+            s2s_log("Invalid websocket protocol: ", protocol);
             return;
         }
         bool useSSL = protocolCaps == "WSS";
@@ -107,16 +133,22 @@ namespace BrainCloud
             //info.extensions = exts;
             info.options = LWS_SERVER_OPTION_VALIDATE_UTF8;
             info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
+
+            if (!g_logFilePath.empty()) {
+                info.log_filepath = g_logFilePath.c_str();
+            }
+
+            lws_set_log_level(LLL_ERR | LLL_WARN | LLL_NOTICE, lwsLogCb);
+
             #if(LWS_LIBRARY_VERSION_MAJOR >= 4) && !defined(BC_SSL_ALLOW_SELFSIGNED)
-                //info.options |= LWS_SERVER_OPTION_DISABLE_OS_CA_CERTS;
-                //info.client_ssl_ca_mem = ca_bundle.c_str();
-                //info.client_ssl_ca_mem_len = static_cast<unsigned int>(ca_bundle.size() + 1);
+                info.ssl_ca_filepath = CACERTS_FILE_PATH;
             #endif
+
             std::unique_lock<std::mutex> lock(lwsContextMutex);
             _pLwsContext = lws_create_context(&info);
             if (!_pLwsContext)
             {
-                std::cout << "Failed to create websocket context" << std::endl;
+                s2s_log("Failed to create websocket context");
                 return;
             }
         }
@@ -155,7 +187,7 @@ namespace BrainCloud
 
             if (!_pLws)
             {
-                std::cout << "Failed to create websocket client" << std::endl;
+                s2s_log("Failed to create websocket client");
                 return;
             }
 
@@ -406,7 +438,7 @@ namespace BrainCloud
 
     void DefaultWebSocket::onClose()
     {
-        std::cout << "WebSocket closed" << std::endl;
+        s2s_log("WebSocket closed");
 
         std::unique_lock<std::mutex> lock(_mutex);
         _isValid = false;
@@ -417,7 +449,7 @@ namespace BrainCloud
 
     void DefaultWebSocket::onError(const char* msg)
     {
-        std::cout << "WebSocket error: " << msg << std::endl;
+        s2s_log("WebSocket error: ", msg);
 
         std::unique_lock<std::mutex> lock(_mutex);
         _isValid = false;
@@ -428,7 +460,7 @@ namespace BrainCloud
 
     void DefaultWebSocket::onConnect()
     {
-        std::cout << "WebSocket Connected!" << std::endl;
+        s2s_log("WebSocket Connected!");
 
         std::unique_lock<std::mutex> lock(_mutex);
         _isValid = true;

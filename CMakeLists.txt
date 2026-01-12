@@ -81,7 +81,7 @@ list(APPEND includes PUBLIC "lib/jsoncpp-1.0.0")
 # Libraries
 #=============================================================================
 find_package(CURL REQUIRED)
-find_package(libwebsockets REQUIRED)
+
 # android uses openssl instead of tls (pre-built libwebsockets.a is linked above)
 if (USE_LIBWEBSOCKETS)
     # TLS
@@ -179,15 +179,23 @@ add_library(brainCloudS2S STATIC
         ${JSONCPP_SRCS_FILES}
         )
 
+
 # Setup includes and links libraries
 target_include_directories(brainCloudS2S PUBLIC "./include" ${includes})
 target_include_directories(brainCloudS2S PRIVATE "./src")
 target_link_libraries(brainCloudS2S PUBLIC ${libs} CURL::libcurl)
 
+
+# Allow parent project to override the CA certs path
+if(NOT DEFINED CACERTS_FILE_PATH)
+    set(CACERTS_FILE_PATH "${CMAKE_SOURCE_DIR}/resources/cacerts.pem")
+endif()
+target_compile_definitions(brainCloudS2S PRIVATE CACERTS_FILE_PATH="${CACERTS_FILE_PATH}")
+
+find_package(libwebsockets CONFIG REQUIRED)
 # Find pthreads based on the platform
 if (WIN32)
     find_package(PThreads4W CONFIG REQUIRED)
-	find_package(libwebsockets CONFIG REQUIRED)
     target_link_libraries(brainCloudS2S PRIVATE PThreads4W::PThreads4W)
 	target_link_libraries(brainCloudS2S PRIVATE websockets_shared)
 	
@@ -196,7 +204,7 @@ if (WIN32)
             /MP     # Multi-core compilation
             )
 elseif(UNIX)
-	find_package(libwebsockets CONFIG REQUIRED)
+	
 	target_link_libraries(brainCloudS2S PRIVATE websockets)
 	
 	find_package(Threads REQUIRED)
