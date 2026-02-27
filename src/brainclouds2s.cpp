@@ -1,6 +1,7 @@
 // Copyright 2026 bitHeads, Inc. All Rights Reserved.
 #include "brainclouds2s.h"
 #include "brainclouds2s-rtt.h"
+#include "brainclouds2s-globalfilev3.h"
 #include "RTTComms.h"
 #include <curl/curl.h>
 #include <json/json.h>
@@ -50,6 +51,7 @@ namespace BrainCloud {
         void setLogEnabled(bool enabled) override;
 
         BrainCloudRTT* getRTTService() override;
+        BrainCloudS2SGlobalFileV3* getGlobalFileV3() override;
 
         void authenticate(const S2SCallback &callback) override;
 
@@ -134,6 +136,9 @@ namespace BrainCloud {
         // RTT
         RTTComms * m_rttComms;
         BrainCloudRTT * m_rttService;
+
+        // GlobalFileV3
+        BrainCloudS2SGlobalFileV3 * m_globalFileV3;
     };
 
     S2SContextRef S2SContext::create(const std::string &appId,
@@ -161,6 +166,8 @@ namespace BrainCloud {
         m_serverSecret = serverSecret;
         m_url = url;
         m_rttService = new BrainCloudRTT(m_rttComms, this);
+        m_globalFileV3 = new BrainCloudS2SGlobalFileV3(this);
+        m_globalFileV3->init(url);
         if (m_rttComms)
         {
             m_rttComms->resetCommunication();
@@ -169,13 +176,18 @@ namespace BrainCloud {
     }
 
     S2SContext_internal::~S2SContext_internal() {
+        disconnect();
         delete m_rttService;
         delete m_rttComms;
-        disconnect();
+        delete m_globalFileV3;
     }
 
     BrainCloudRTT* S2SContext_internal::getRTTService() {
         return m_rttService;
+    }
+
+    BrainCloudS2SGlobalFileV3* S2SContext_internal::getGlobalFileV3() {
+        return m_globalFileV3;
     }
 
     void S2SContext_internal::setLogEnabled(bool enabled) {
@@ -634,6 +646,8 @@ namespace BrainCloud {
         m_requestQueue.clear();
         m_requestsMutex.unlock();
 
+        m_globalFileV3->disconnect();
+
         m_state = State::Disconnected;
         int m_packetId = 0; // Super important!
         std::string m_sessionId = "";
@@ -706,6 +720,7 @@ namespace BrainCloud {
         processCallbacks();
 
         m_rttComms->runCallbacks();
+        m_globalFileV3->runCallbacks();
     }
 
     

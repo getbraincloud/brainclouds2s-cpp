@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_C_STANDARD 99)
 
 # Find required packages
-find_package(CURL CONFIG REQUIRED)
+find_package(CURL REQUIRED)
 find_package(libuv CONFIG REQUIRED)
 
 include_directories("${BC_DIR}/lib/jsoncpp-1.0.0")

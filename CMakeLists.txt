@@ -153,6 +153,8 @@ add_library(brainCloudS2S STATIC
         # public headers
         include/brainclouds2s.h
         include/brainclouds2s-rtt.h
+        include/brainclouds2s-globalfilev3.h
+        include/brainclouds2s-prl.h
         include/BrainCloudTypes.h
         include/IRTTCallback.h
         include/IRTTConnectCallback.h
@@ -168,6 +170,8 @@ add_library(brainCloudS2S STATIC
 		
 		src/brainclouds2s.cpp
         src/brainclouds2s-rtt.cpp
+        src/brainclouds2s-globalfilev3.cpp
+        src/brainclouds2s-prl.cpp
         src/RTTComms.cpp
         src/ServiceName.cpp
         src/ServiceOperation.cpp
