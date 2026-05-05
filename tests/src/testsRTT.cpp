@@ -73,10 +73,10 @@ TEST_CASE("RTT RegisterCallbacks", "[S2S]") {
         BRAINCLOUD_SERVER_URL,
         false
     );
-    pContext->setLogEnabled(true);
 
     SECTION("RTT Connection")
     {
+        pContext->setLogEnabled(true);
         // 1. authenticate (if autoAuth is false)
         auto retAuth = runAuth(pContext);
         REQUIRE(retAuth);
@@ -88,8 +88,9 @@ TEST_CASE("RTT RegisterCallbacks", "[S2S]") {
         public:
             bool receivedCallback = false;
             void rttCallback(const std::string& jsonData) {
-                INFO("RECEIVED RTT CALLBACK : " + jsonData);
                 receivedCallback = true;
+                //INFO("RECEIVED RTT CALLBACK : " + jsonData);
+                s2s_log("Received RTT Callback: ", jsonData);
             }
         }testRTTCallback;
         rttService->registerRTTCallback(ServiceName::Chat, &testRTTCallback);
