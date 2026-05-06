@@ -50,7 +50,7 @@ namespace BrainCloud {
 
         Catch::ReporterPreferences getPreferences() const override{
             Catch::ReporterPreferences prefs;
-            prefs.shouldRedirectStdOut = true;
+            prefs.shouldRedirectStdOut = false;
             prefs.shouldReportAllAssertions = true;
             return prefs;
         }

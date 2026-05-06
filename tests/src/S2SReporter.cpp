@@ -74,11 +74,10 @@ namespace BrainCloud {
 	{
 		if (stats.totals.testCases.failed > 0) {
 			s2s_log("<<< Finished TEST_CASE: ", stats.testInfo.name, " [FAILED]");
-			s2s_log("<<< error log: ", stats.stdErr);
+			if (!stats.stdErr.empty()) s2s_log("<<< error log: ", stats.stdErr);
 		}
 		else {
 			s2s_log("<<< Finished TEST_CASE: ", stats.testInfo.name, " [PASSED] ");
-			s2s_log("<<< output log: ", stats.stdOut);
 		}
 		
 
