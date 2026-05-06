@@ -46,6 +46,7 @@ namespace BrainCloud {
         void sectionStarting(Catch::SectionInfo const& sectionInfo) override;
         void sectionEnded(Catch::SectionStats const& stats) override;
         bool assertionEnded(Catch::AssertionStats const& assertionStats) override;
+        void testRunEnded(Catch::TestRunStats const& testRunStats) override;
 
         Catch::ReporterPreferences getPreferences() const override{
             Catch::ReporterPreferences prefs;

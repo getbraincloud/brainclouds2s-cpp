@@ -192,6 +192,7 @@ namespace BrainCloud {
 					}
 
 					t.errors.push_back(ss.str());
+					s2s_log(ss.str());
 				}
 
 				if (assertionStats.assertionResult.hasMessage()) {
@@ -205,6 +206,32 @@ namespace BrainCloud {
 
 		saveResults();
 		return result.isOk();
+	}
+
+	void S2SReporter::testRunEnded(Catch::TestRunStats const& testRunStats)
+	{
+		std::vector<const TestResult*> failed;
+		for (auto const& t : m_tests) {
+			if (t.status == "fail") {
+				failed.push_back(&t);
+			}
+		}
+
+		if (!failed.empty()) {
+			s2s_log("==================== FAILED TEST SUMMARY ====================");
+			for (auto const* t : failed) {
+				s2s_log("[FAILED] ", t->name);
+				for (auto const& e : t->errors) {
+					s2s_log("  ", e);
+				}
+			}
+			s2s_log("=============================================================");
+		} else {
+			s2s_log("==================== ALL TESTS PASSED ====================");
+		}
+
+		ConsoleReporter::testRunEnded(testRunStats);
+		saveResults();
 	}
 
 	std::vector<std::string> S2SReporter::splitOutputLines(const std::string& text)
