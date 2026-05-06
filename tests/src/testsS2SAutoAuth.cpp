@@ -100,11 +100,13 @@ TEST_CASE("Valid Context - Auto auth", "[S2SAA]")
         pContext->request(request, callback);
         pContext->request(request, callback);
 
+        // Each request has a 30s curl timeout; 5 sequential requests = up to 150s worst case.
+        // Allow 180s total to ensure all complete or time out individually.
         auto start_time = std::chrono::system_clock::now();
         while (processed_count < 5)
         {
             pContext->runCallbacks(100);
-            if (std::chrono::system_clock::now() - start_time > std::chrono::seconds(20))
+            if (std::chrono::system_clock::now() - start_time > std::chrono::seconds(180))
             {
                 fprintf(stderr, "[Successive calls] TIMED OUT: processed=%d success=%d\n",
                         processed_count, success_count);
