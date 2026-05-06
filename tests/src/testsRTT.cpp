@@ -164,8 +164,14 @@ TEST_CASE("RTT RegisterCallbacks", "[S2S]") {
         ret = run(sendMessageRequest, pContext);
         REQUIRE(ret);
 
-        std::this_thread::sleep_for(std::chrono::seconds(2));
+        // Pump the event loop until the RTT callback arrives or we time out
+        auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(10);
+        while (!testRTTCallback.receivedCallback &&
+               std::chrono::steady_clock::now() < deadline)
+        {
+            pContext->runCallbacks(100);
+        }
 
-       REQUIRE(testRTTCallback.receivedCallback);
+        REQUIRE(testRTTCallback.receivedCallback);
     }
 }
