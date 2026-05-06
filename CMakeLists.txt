@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.30)
+include(FetchContent)
 
 project(brainCloudS2S)
 
@@ -141,11 +142,13 @@ if (USE_LIBWEBSOCKETS)
     option(LWS_WITHOUT_EXTENSIONS "" ON)
     option(LWS_WITH_TLS "" ON)
 
-    #add_subdirectory("${BC_LWS_DIR}")
-    list(APPEND includes
-            PUBLIC
-            ${BC_LWS_INC}
-            )
+    FetchContent_Declare(
+        libwebsockets
+        GIT_REPOSITORY https://github.com/warmcat/libwebsockets.git
+        GIT_TAG        v4.3.3
+        GIT_SHALLOW    TRUE
+    )
+    FetchContent_MakeAvailable(libwebsockets)
 
 endif()
 
@@ -196,12 +199,11 @@ if(NOT DEFINED CACERTS_FILE_PATH)
 endif()
 target_compile_definitions(brainCloudS2S PRIVATE CACERTS_FILE_PATH="${CACERTS_FILE_PATH}")
 
-find_package(libwebsockets CONFIG REQUIRED)
 # Find pthreads based on the platform
 if (WIN32)
     find_package(PThreads4W CONFIG REQUIRED)
     target_link_libraries(brainCloudS2S PRIVATE PThreads4W::PThreads4W)
-	target_link_libraries(brainCloudS2S PRIVATE websockets_shared)
+	target_link_libraries(brainCloudS2S PRIVATE websockets)
 	
 	# Compile flags
 	target_compile_options(brainCloudS2S PRIVATE
