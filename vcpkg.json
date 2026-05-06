@@ -14,7 +14,11 @@
       "version>=": "8.8.0",
       "platform": "!osx"
     },
-    { "name": "libwebsockets", "version>=":"4.3.3"},
+    {
+      "name": "libwebsockets",
+      "version>=": "4.3.3",
+      "platform": "!osx"
+    },
     { "name": "pthreads", "version>=": "3.0.0#14"},
     { "name": "libuv", "version>=": "1.48.0"}
   ]
