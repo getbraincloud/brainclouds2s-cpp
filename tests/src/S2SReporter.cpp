@@ -58,8 +58,9 @@ namespace BrainCloud {
 	void S2SReporter::testCaseStarting(Catch::TestCaseInfo const& testInfo)
 	{
 		s2s_log(">>> Starting TEST_CASE: ", testInfo.name);
-		
-		
+
+		m_testStartTime = std::chrono::steady_clock::now();
+
 		auto it = m_indexByName.find(testInfo.name);
 		if (it == m_indexByName.end()) return;
 		TestResult& t = m_tests[it->second];
@@ -85,6 +86,7 @@ namespace BrainCloud {
 		if (it == m_indexByName.end()) return;
 		TestResult& t = m_tests[it->second];
 		t.end_time = currentTimeStringUtc();
+		t.duration = std::chrono::duration<double>(std::chrono::steady_clock::now() - m_testStartTime).count();
 		t.status = (stats.totals.assertions.failed ? "fail" : "success");
 
 		if (!stats.stdOut.empty()) {
@@ -278,6 +280,7 @@ namespace BrainCloud {
 			o["name"] = t.name;
 			o["start_time"] = t.start_time;
 			o["end_time"] = t.end_time;
+			o["duration"] = t.duration;
 			o["status"] = t.status;
 
 			Json::Value sections(Json::arrayValue);

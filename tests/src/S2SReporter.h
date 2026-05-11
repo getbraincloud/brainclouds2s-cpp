@@ -30,6 +30,7 @@ namespace BrainCloud {
         std::string name;
         std::string start_time;
         std::string end_time;
+        double      duration = 0.0;
         std::string status;
         std::vector<std::string> output;
         std::vector<std::string> errors;
@@ -63,6 +64,7 @@ namespace BrainCloud {
         std::unordered_map<std::string, size_t> m_indexByName; // name -> index into m_tests
         std::string m_outputFile = "test_results.json";
         std::string m_runStartTime;
+        std::chrono::steady_clock::time_point m_testStartTime;
 
         std::string currentTimeStringUtc() const;
         void saveResults() const;
