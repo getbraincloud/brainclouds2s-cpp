@@ -27,10 +27,11 @@ namespace BrainCloud {
     static const std::string DEFAULT_S2S_URL =
             "https://api.braincloudservers.com/s2sdispatcher";
 
-    static const std::string s_brainCloudS2SVersion = "5.9.0";
+    static const std::string s_brainCloudS2SVersion = "6.0.0";
 
     class S2SContext;
     class BrainCloudRTT;
+    class BrainCloudS2SGlobalFileV3;
     class IRTTConnectCallback;
     using S2SCallback = std::function<void(const std::string &)>;
     using S2SContextRef = std::shared_ptr<S2SContext>;
@@ -270,6 +271,8 @@ namespace BrainCloud {
         virtual void runCallbacks(uint64_t timeoutMS = 0) = 0;
 
         virtual BrainCloudRTT* getRTTService() {return nullptr;}
+
+        virtual BrainCloudS2SGlobalFileV3* getGlobalFileV3() {return nullptr;}
 
         const std::string& getAppId() const {return m_appId;}
         const std::string& getServerName() const {return m_serverName;}

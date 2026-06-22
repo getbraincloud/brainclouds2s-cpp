@@ -1,6 +1,7 @@
 // Copyright 2026 bitHeads, Inc. All Rights Reserved.
 #include "brainclouds2s.h"
 #include "brainclouds2s-rtt.h"
+#include "brainclouds2s-globalfilev3.h"
 #include "RTTComms.h"
 #include <curl/curl.h>
 #include <json/json.h>
@@ -50,6 +51,7 @@ namespace BrainCloud {
         void setLogEnabled(bool enabled) override;
 
         BrainCloudRTT* getRTTService() override;
+        BrainCloudS2SGlobalFileV3* getGlobalFileV3() override;
 
         void authenticate(const S2SCallback &callback) override;
 
@@ -134,6 +136,9 @@ namespace BrainCloud {
         // RTT
         RTTComms * m_rttComms;
         BrainCloudRTT * m_rttService;
+
+        // GlobalFileV3
+        BrainCloudS2SGlobalFileV3 * m_globalFileV3;
     };
 
     S2SContextRef S2SContext::create(const std::string &appId,
@@ -161,6 +166,8 @@ namespace BrainCloud {
         m_serverSecret = serverSecret;
         m_url = url;
         m_rttService = new BrainCloudRTT(m_rttComms, this);
+        m_globalFileV3 = new BrainCloudS2SGlobalFileV3(this);
+        m_globalFileV3->init(url);
         if (m_rttComms)
         {
             m_rttComms->resetCommunication();
@@ -169,13 +176,18 @@ namespace BrainCloud {
     }
 
     S2SContext_internal::~S2SContext_internal() {
+        disconnect();
         delete m_rttService;
         delete m_rttComms;
-        disconnect();
+        delete m_globalFileV3;
     }
 
     BrainCloudRTT* S2SContext_internal::getRTTService() {
         return m_rttService;
+    }
+
+    BrainCloudS2SGlobalFileV3* S2SContext_internal::getGlobalFileV3() {
+        return m_globalFileV3;
     }
 
     void S2SContext_internal::setLogEnabled(bool enabled) {
@@ -329,10 +341,20 @@ namespace BrainCloud {
 
         {
             std::unique_lock <std::mutex> lock(m_requestsMutex);
-            if (m_requestQueue.empty()) return;
+            if (m_requestQueue.empty()) {
+                if (m_logEnabled) {
+                    fprintf(stderr, "[S2S next] doNextRequest: queue empty, done\n");
+                    fflush(stderr);
+                }
+                return;
+            }
             request = m_requestQueue.front();
         }
 
+        if (m_logEnabled) {
+            fprintf(stderr, "[S2S next] doNextRequest: sending next queued request\n");
+            fflush(stderr);
+        }
         s2sRequest(request.json, request.callback);
     }
 
@@ -417,6 +439,11 @@ namespace BrainCloud {
         auto pThis = shared_from_this();
         auto sendThread = std::thread(
                 [pThis, postData, successCallback, errorCallback] {
+                    if (pThis->m_logEnabled) {
+                        fprintf(stderr, "[S2S curl] thread starting, posting to %s\n", pThis->m_url.c_str());
+                        fflush(stderr);
+                    }
+
                     CURL *curl = curl_easy_init();
 
                     if (!curl) {
@@ -430,6 +457,7 @@ namespace BrainCloud {
                     }
 
                     char curlError[CURL_ERROR_SIZE];
+                    curlError[0] = '\0';
 
                     // Use an error buffer to store the description of any errors.
                     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlError);
@@ -450,6 +478,10 @@ namespace BrainCloud {
                     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, (long) 0);
                     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, (long) 0);
 
+                    // Timeouts: fail fast on hung connections rather than blocking forever
+                    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
+                    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L);
+
                     // Set the base URL for the request.
                     curl_easy_setopt(curl, CURLOPT_URL, pThis->m_url.c_str());
 
@@ -458,7 +490,21 @@ namespace BrainCloud {
                     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, postData.size());
                     curl_easy_setopt(curl, CURLOPT_COPYPOSTFIELDS, postData.c_str());
 
+                    if (pThis->m_logEnabled) {
+                        fprintf(stderr, "[S2S curl] calling curl_easy_perform...\n");
+                        fflush(stderr);
+                    }
+
                     CURLcode rc = curl_easy_perform(curl);
+
+                    if (pThis->m_logEnabled) {
+                        fprintf(stderr, "[S2S curl] curl_easy_perform returned rc=%d (%s)\n",
+                                (int)rc, rc == CURLE_OK ? "OK" : curl_easy_strerror(rc));
+                        fflush(stderr);
+                    }
+
+                    curl_slist_free_all(headers);
+                    curl_easy_cleanup(curl);
 
                     if (rc == CURLE_OPERATION_TIMEDOUT) {
                         if (errorCallback) {
@@ -467,7 +513,6 @@ namespace BrainCloud {
                                                          "{\"status\":900,\"message\":\"Operation timed out\"}"
                                                  });
                         }
-                        return;
                     } else if (rc != CURLE_OK) {
                         if (errorCallback) {
                             pThis->queueCallback({
@@ -476,16 +521,7 @@ namespace BrainCloud {
                                                          curlError + "\"}"
                                                  });
                         }
-                        return;
-                    }
-
-                    // Clean up memory.
-                    if (headers != NULL) {
-                        curl_slist_free_all(headers);
-                    }
-                    curl_easy_cleanup(curl);
-
-                    if (successCallback) {
+                    } else if (successCallback) {
                         pThis->queueCallback({
                                                      successCallback,
                                                      result
@@ -634,6 +670,8 @@ namespace BrainCloud {
         m_requestQueue.clear();
         m_requestsMutex.unlock();
 
+        m_globalFileV3->disconnect();
+
         m_state = State::Disconnected;
         int m_packetId = 0; // Super important!
         std::string m_sessionId = "";
@@ -641,6 +679,11 @@ namespace BrainCloud {
 
     void S2SContext_internal::queueCallback(const Callback &callback) {
         std::unique_lock <std::mutex> lock(m_callbacksMutex);
+        if (m_logEnabled) {
+            fprintf(stderr, "[S2S queue] queueCallback: pushing callback, queue size before push=%zu\n",
+                    m_callbacks.size());
+            fflush(stderr);
+        }
         m_callbacks.push(callback);
         m_callbacksCond.notify_all();
     }
@@ -665,13 +708,26 @@ namespace BrainCloud {
 
     void S2SContext_internal::processCallbacks() {
         m_callbacksMutex.lock();
+        if (m_logEnabled && !m_callbacks.empty()) {
+            fprintf(stderr, "[S2S process] processCallbacks: %zu callback(s) pending\n",
+                    m_callbacks.size());
+            fflush(stderr);
+        }
         while (!m_callbacks.empty()) {
             auto callback = m_callbacks.front();
             m_callbacks.pop();
 
             if (callback.callback) {
                 m_callbacksMutex.unlock();
+                if (m_logEnabled) {
+                    fprintf(stderr, "[S2S process] invoking callback...\n");
+                    fflush(stderr);
+                }
                 callback.callback(callback.data);
+                if (m_logEnabled) {
+                    fprintf(stderr, "[S2S process] callback returned\n");
+                    fflush(stderr);
+                }
                 m_callbacksMutex.lock();
             }
         }
@@ -695,17 +751,19 @@ namespace BrainCloud {
                 auto timeoutDuration = std::chrono::milliseconds(timeoutMS);
                 auto waitTime = timeoutDuration < hbIntervalDuration ? timeoutDuration : hbIntervalDuration;
                 std::unique_lock <std::mutex> lock(m_callbacksMutex);
-                m_callbacksCond.wait_for(lock, waitTime);
+                m_callbacksCond.wait_for(lock, waitTime, [this]() { return !m_callbacks.empty(); });
             }
         } else if (timeoutMS > 0) {
             // Just wait for the specified timeout
             std::unique_lock <std::mutex> lock(m_callbacksMutex);
-            m_callbacksCond.wait_for(lock, std::chrono::milliseconds(timeoutMS));
+            m_callbacksCond.wait_for(lock, std::chrono::milliseconds(timeoutMS),
+                                     [this]() { return !m_callbacks.empty(); });
         }
 
         processCallbacks();
 
         m_rttComms->runCallbacks();
+        m_globalFileV3->runCallbacks();
     }
 
     

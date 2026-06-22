@@ -1,6 +1,7 @@
 #define CATCH_CONFIG_MAIN
 #include "tests.h"
 #include "catch.hpp"
+#include <cstdio>
 
 ///////////////////////////////////////////////////////////////////////////////
 // We start with all tests, but using Auto-Auth.
@@ -74,12 +75,23 @@ TEST_CASE("Valid Context - Auto auth", "[S2SAA]")
             Json::Value data;
             Json::Reader reader;
             bool parsingSuccessful = reader.parse(result.c_str(), data);
-            if (parsingSuccessful && data["status"].asInt() == 200)
+            int status = parsingSuccessful ? data["status"].asInt() : -1;
+            if (status == 200)
             {
                 success_count++;
+                fprintf(stderr, "[Successive calls] Request %d/%d: OK\n", processed_count + 1, 5);
             }
+            else
+            {
+                fprintf(stderr, "[Successive calls] Request %d/%d FAILED status=%d result=%s\n",
+                        processed_count + 1, 5, status, result.c_str());
+            }
+            fflush(stderr);
             processed_count++;
         };
+
+        fprintf(stderr, "[Successive calls] Queuing 5 requests (sequential auto-auth)...\n");
+        fflush(stderr);
 
         // Queue many at once
         pContext->request(request, callback);
@@ -87,17 +99,25 @@ TEST_CASE("Valid Context - Auto auth", "[S2SAA]")
         pContext->request(request, callback);
         pContext->request(request, callback);
         pContext->request(request, callback);
-        
+
+        // Each request has a 30s curl timeout; 5 sequential requests = up to 150s worst case.
+        // Allow 180s total to ensure all complete or time out individually.
         auto start_time = std::chrono::system_clock::now();
         while (processed_count < 5)
         {
             pContext->runCallbacks(100);
-            if (std::chrono::system_clock::now() - start_time > std::chrono::seconds(20))
+            if (std::chrono::system_clock::now() - start_time > std::chrono::seconds(180))
             {
-                printf("Timeout");
+                fprintf(stderr, "[Successive calls] TIMED OUT: processed=%d success=%d\n",
+                        processed_count, success_count);
+                fflush(stderr);
                 break;
             }
         }
+
+        fprintf(stderr, "[Successive calls] Done: processed=%d success=%d\n",
+                processed_count, success_count);
+        fflush(stderr);
 
         REQUIRE(success_count == 5);
     }
