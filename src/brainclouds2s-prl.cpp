@@ -1,5 +1,3 @@
-// Copyright 2026 bitHeads, Inc. All Rights Reserved.
-
 #include "brainclouds2s-prl.h"
 #include "brainclouds2s-rtt.h"
 #include "ServiceName.h"

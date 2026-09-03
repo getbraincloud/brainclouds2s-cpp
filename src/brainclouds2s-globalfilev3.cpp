@@ -1,5 +1,3 @@
-// Copyright 2026 bitHeads, Inc. All Rights Reserved.
-
 #include "brainclouds2s-globalfilev3.h"
 #include "brainclouds2s.h"
 #include "json/json.h"
