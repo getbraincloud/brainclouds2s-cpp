@@ -149,12 +149,18 @@ TEST_CASE("RTT RegisterCallbacks", "[S2S]") {
         REQUIRE(rttConnectCallback.ret.empty());
         REQUIRE(rttService->getRTTEnabled());
 
-        auto joinChannelRequest = "{ \
+        // The channel id embeds the app id, so it has to come from the loaded ids.txt.
+        // It was hardcoded as "20001:sy:test", which pinned this test to that one app -
+        // every other environment rejected it with 40603 "Unrecognized channel",
+        // regardless of platform.
+        const std::string channelId = BRAINCLOUD_APP_ID + ":sy:test";
+
+        const std::string joinChannelRequest = "{ \
             \"service\": \"chat\", \
             \"operation\": \"SYS_CHANNEL_CONNECT\", \
             \"data\": { \
                 \"ccCall\": false, \
-                \"channelId\": \"20001:sy:test\", \
+                \"channelId\": \"" + channelId + "\", \
                 \"maxReturn\": 2 \
             } \
         }";
@@ -164,12 +170,12 @@ TEST_CASE("RTT RegisterCallbacks", "[S2S]") {
         RTT_LOG(ret ? "Step 3: Channel joined" : "Step 3: Channel join FAILED");
         REQUIRE(ret);
 
-        auto sendMessageRequest = "{ \
+        const std::string sendMessageRequest = "{ \
             \"service\": \"chat\", \
             \"operation\": \"SYS_POST_CHAT_MESSAGE\", \
             \"data\": { \
                 \"ccCall\": false, \
-                \"channelId\": \"20001:sy:test\", \
+                \"channelId\": \"" + channelId + "\", \
                 \"maxReturn\": 0, \
                 \"content\": { \
                     \"text\": \"Hello world from s2s test\"\
