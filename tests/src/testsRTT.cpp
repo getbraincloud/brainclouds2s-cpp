@@ -149,10 +149,6 @@ TEST_CASE("RTT RegisterCallbacks", "[S2S]") {
         REQUIRE(rttConnectCallback.ret.empty());
         REQUIRE(rttService->getRTTEnabled());
 
-        // The channel id embeds the app id, so it has to come from the loaded ids.txt.
-        // It was hardcoded as "20001:sy:test", which pinned this test to that one app -
-        // every other environment rejected it with 40603 "Unrecognized channel",
-        // regardless of platform.
         const std::string channelId = BRAINCLOUD_APP_ID + ":sy:test";
 
         const std::string joinChannelRequest = "{ \
