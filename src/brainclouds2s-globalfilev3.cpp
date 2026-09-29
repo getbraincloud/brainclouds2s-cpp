@@ -2,6 +2,7 @@
 #include "brainclouds2s.h"
 #include "json/json.h"
 #include <curl/curl.h>
+#include "S2SCurlShare.h"
 
 #include <sstream>
 #include <thread>
@@ -344,6 +345,10 @@ namespace BrainCloud
                         "{\"status\":900,\"status_message\":\"cURL initialization failed\"}"});
                 return;
             }
+
+            // Same shared connection pool the dispatcher calls use.
+            if (CURLSH* share = s2sCurlShare())
+                curl_easy_setopt(curl, CURLOPT_SHARE, share);
 
             // Build multipart/form-data body with curl_mime (curl >= 7.56)
             curl_mime* mime = curl_mime_init(curl);
