@@ -152,7 +152,7 @@ namespace BrainCloud
         channelData["maxReturn"] = 50;
         Json::Value channelRequest;
         channelRequest["service"] = "chat";
-        channelRequest["operation"] = "CHANNEL_CONNECT";
+        channelRequest["operation"] = "SYS_CHANNEL_CONNECT";
         channelRequest["data"] = channelData;
 
         Json::FastWriter writer;
