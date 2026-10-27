@@ -1,5 +1,3 @@
-// Copyright 2026 bitHeads, Inc. All Rights Reserved.
-
 #include "brainclouds2s-prl.h"
 #include "brainclouds2s-rtt.h"
 #include "ServiceName.h"
@@ -154,7 +152,7 @@ namespace BrainCloud
         channelData["maxReturn"] = 50;
         Json::Value channelRequest;
         channelRequest["service"] = "chat";
-        channelRequest["operation"] = "CHANNEL_CONNECT";
+        channelRequest["operation"] = "SYS_CHANNEL_CONNECT";
         channelRequest["data"] = channelData;
 
         Json::FastWriter writer;

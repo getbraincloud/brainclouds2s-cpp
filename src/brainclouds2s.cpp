@@ -4,6 +4,7 @@
 #include "brainclouds2s-globalfilev3.h"
 #include "RTTComms.h"
 #include <curl/curl.h>
+#include "S2SCurlShare.h"
 #include <json/json.h>
 
 
@@ -461,6 +462,11 @@ namespace BrainCloud {
 
                     // Use an error buffer to store the description of any errors.
                     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlError);
+                    // Share the connection pool and TLS sessions with every other easy
+                    // handle in this process, so successive calls reuse one connection
+                    // instead of doing a fresh TCP + TLS handshake each time.
+                    if (CURLSH* share = s2sCurlShare())
+                        curl_easy_setopt(curl, CURLOPT_SHARE, share);
 
                     // Set the headers.
                     struct curl_slist *headers = NULL;
